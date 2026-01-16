@@ -1,0 +1,59 @@
+# Root level ignores
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Frontend (Angular)
+lw-frontend/node_modules/
+lw-frontend/dist/
+lw-frontend/.angular/
+lw-frontend/tmp/
+lw-frontend/out-tsc/
+lw-frontend/.sass-cache/
+lw-frontend/coverage/
+lw-frontend/.history/
+
+# Backend (Laravel)
+lw-backend/vendor/
+lw-backend/node_modules/
+lw-backend/.env
+lw-backend/.env.backup
+lw-backend/.phpunit.result.cache
+lw-backend/storage/*.key
+lw-backend/storage/logs/*.log
+lw-backend/storage/framework/cache/*
+lw-backend/storage/framework/sessions/*
+lw-backend/storage/framework/views/*
+lw-backend/bootstrap/cache/*
+!lw-backend/storage/framework/cache/.gitignore
+!lw-backend/storage/framework/sessions/.gitignore
+!lw-backend/storage/framework/views/.gitignore
+!lw-backend/storage/logs/.gitignore
+!lw-backend/storage/app/.gitignore
+!lw-backend/storage/app/public/.gitignore
+!lw-backend/storage/app/private/.gitignore
+!lw-backend/bootstrap/cache/.gitignore
+!lw-backend/database/.gitignore
+
+# iOS (Capacitor)
+lw-frontend/ios/App/Pods/
+lw-frontend/ios/App/build/
+lw-frontend/ios/App/DerivedData/
+lw-frontend/ios/App/*.xcworkspace/xcuserdata/
+lw-frontend/ios/App/*.xcodeproj/xcuserdata/
+lw-frontend/ios/App/*.xcodeproj/project.xcworkspace/xcuserdata/
