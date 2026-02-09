@@ -9,27 +9,22 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
             print("WCSession not supported")
             return
         }
-
         let session = WCSession.default
         session.delegate = self
         session.activate()
     }
 
-    func session(
-        _ session: WCSession,
-        activationDidCompleteWith activationState: WCSessionActivationState,
-        error: Error?
-    ) {
+    // MARK: - WCSessionDelegate
+
+    func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         print("WCSession activated:", activationState.rawValue)
         if let error = error {
-            print("WCSession error:", error)
+            print("WCSession activation error:", error.localizedDescription)
         }
     }
 
-    func session(
-        _ session: WCSession,
-        didReceiveMessage message: [String : Any]
-    ) {
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
         print("📩 Ontvangen van Watch:", message)
     }
+
 }

@@ -1,24 +1,36 @@
-//
-//  ContentView.swift
-//  WatchAppScore Watch App
-//
-//  Created by Bryan Berendsen on 24/01/2026.
-//
-
 import SwiftUI
+import WatchConnectivity
 
 struct ContentView: View {
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Button("Test Message") {
+                sendTestMessage()
+            }
         }
-        .padding()
+        .onAppear {
+            WatchSessionManager.shared.start()
+        }
+    }
+    
+    // MARK: - Functie om testbericht te sturen
+    func sendTestMessage() {
+        if WCSession.default.isReachable {
+            let message = ["value": 1]
+            WCSession.default.sendMessage(message, replyHandler: nil) { error in
+                print("❌ Error sending message:", error.localizedDescription)
+            }
+            print("📤 Test message sent")
+        } else {
+            print("❌ iPhone not reachable")
+        }
     }
 }
 
-#Preview {
-    ContentView()
+// MARK: - Preview
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
