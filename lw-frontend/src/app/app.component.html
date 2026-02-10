@@ -1,1 +1,27 @@
-<router-outlet />
+  @if (showLogout()) {
+    <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center">
+      <div class="flex-1" aria-hidden="true"></div>
+      <a routerLink="/homescreen" class="flex items-center gap-2 opacity-90 hover:opacity-100 transition-opacity" aria-label="Last Workout home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 24" class="h-6 w-10 text-black" fill="currentColor" aria-hidden="true">
+          <circle cx="6" cy="12" r="4" fill="currentColor"/>
+          <circle cx="34" cy="12" r="4" fill="currentColor"/>
+          <rect x="10" y="10" width="20" height="4" rx="1" fill="currentColor"/>
+        </svg>
+        <span class="text-lg font-semibold tracking-tight text-black">LW</span>
+      </a>
+      <div class="flex-1 flex justify-end">
+        <button
+          (click)="logout()"
+          class="btn-primary text-sm px-3 py-1.5"
+        >
+          Log out
+        </button>
+      </div>
+    </header>
+  }
+  <main class="min-h-screen bg-white" [class.main--with-tab-bar]="showTabBar()">
+    <router-outlet />
+  </main>
+  @if (showTabBar()) {
+    <app-tab-bar />
+  }

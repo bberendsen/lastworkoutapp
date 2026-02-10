@@ -1,0 +1,70 @@
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse 140% 100% at 50% 50%,
+    rgba(16, 185, 129, 0.18) 0%,
+    rgba(16, 185, 129, 0.06) 35%,
+    rgba(255, 255, 255, 0.5) 70%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: celebration-fade-in 0.4s ease-out;
+}
+
+.celebration-content {
+  text-align: center;
+  padding: 2rem 2.5rem;
+  animation: celebration-scale-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.celebration-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.celebration-icon-svg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.celebration-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgb(17, 24, 39);
+  letter-spacing: -0.025em;
+  margin: 0 0 0.5rem 0;
+}
+
+.celebration-subtitle {
+  font-size: 0.9375rem;
+  color: rgb(107, 114, 128);
+  margin: 0;
+}
+
+@keyframes celebration-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes celebration-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

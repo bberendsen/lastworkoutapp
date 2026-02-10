@@ -1,0 +1,4 @@
+/* Reserve space for floating Liquid Glass tab bar (pill + margin) */
+.main--with-tab-bar {
+  padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+}
