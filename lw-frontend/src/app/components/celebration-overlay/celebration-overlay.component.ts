@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type CelebrationType = 'workout-logged' | 'streak' | 'welcome-back' | 'custom';
+export type CelebrationType = 'workout-logged' | 'streak' | 'streak-8' | 'streak-15' | 'streak-30' | 'welcome-back' | 'custom';
 
 export interface CelebrationPreset {
   title: string;
@@ -18,6 +18,21 @@ const PRESETS: Record<Exclude<CelebrationType, 'custom'>, CelebrationPreset> = {
   streak: {
     title: 'Second workout in a row!',
     subtitle: "You're on fire. Keep it up!",
+    icon: 'flame',
+  },
+  'streak-8': {
+    title: '8 days in a row!',
+    subtitle: 'Wow, a week of discipline.',
+    icon: 'flame',
+  },
+  'streak-15': {
+    title: '15 days in a row!',
+    subtitle: 'Wow, 2 weeks.',
+    icon: 'flame',
+  },
+  'streak-30': {
+    title: "A month of workouts!",
+    subtitle: 'Wow, keep on going. Amazing results!',
     icon: 'flame',
   },
   'welcome-back': {

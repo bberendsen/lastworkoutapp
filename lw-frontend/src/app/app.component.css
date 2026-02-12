@@ -1,3 +1,36 @@
+/* Splash screen for app load (iOS) */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(4, 12, 23);
+  transition: opacity 0.4s ease;
+}
+
+.splash--hiding {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash__logo {
+  width: 60px;
+  height: auto;
+  object-fit: contain;
+  animation: splash-bounce 0.8s ease-in-out infinite;
+}
+
+@keyframes splash-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 /* Reserve space for floating Liquid Glass tab bar (pill + margin) */
 .main--with-tab-bar {
   padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));

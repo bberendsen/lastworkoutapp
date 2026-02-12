@@ -31,6 +31,8 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   workoutLoggedSuccessfully: WritableSignal<boolean> = signal(false);
   workoutLoggedFailed: WritableSignal<boolean> = signal(false);
   celebrationType = signal<CelebrationType>('workout-logged');
+  celebrationTitle = signal<string | undefined>(undefined);
+  celebrationSubtitle = signal<string | undefined>(undefined);
   lastWorkoutTime = signal<Date | null>(null);
   timeSinceLastWorkout = signal<TimeSinceLastWorkoutDisplay>({
     days: 0,
@@ -95,12 +97,27 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.loadWorkouts();
         this.loadLeaderboard();
-        this.loadCurrentStreak();
-        console.log('Workout logged:', response);
-        this.celebrationType.set(this.getCelebrationType());
-        this.workoutLoggedSuccessfully.set(true);
-        this.workoutLoggedFailed.set(false);
-        setTimeout(() => this.workoutLoggedSuccessfully.set(false), 2500);
+        this.streakService.getCurrentStreak(this.userId).subscribe({
+          next: (res) => {
+            this.currentStreak.set(res.current_streak);
+            this.longestStreak.set(res.longest_streak ?? 0);
+            const { type, title, subtitle } = this.getCelebrationForStreak(res.current_streak);
+            this.celebrationType.set(type);
+            this.celebrationTitle.set(title);
+            this.celebrationSubtitle.set(subtitle);
+            this.workoutLoggedSuccessfully.set(true);
+            this.workoutLoggedFailed.set(false);
+            setTimeout(() => this.workoutLoggedSuccessfully.set(false), 2500);
+          },
+          error: () => {
+            this.celebrationType.set('workout-logged');
+            this.celebrationTitle.set(undefined);
+            this.celebrationSubtitle.set(undefined);
+            this.workoutLoggedSuccessfully.set(true);
+            this.workoutLoggedFailed.set(false);
+            setTimeout(() => this.workoutLoggedSuccessfully.set(false), 2500);
+          }
+        });
       },
       error: (error) => {
         console.error('Error logging workout:', error);
@@ -231,14 +248,24 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getCelebrationType(): CelebrationType {
-    const workouts = this.workouts();
-    if (!workouts || workouts.length === 0) return 'workout-logged';
-    const lastWorkoutDate = new Date(workouts[0].workout_datetime).getTime();
-    const hoursSince = (Date.now() - lastWorkoutDate) / (1000 * 60 * 60);
-    if (hoursSince < 48) return 'streak';
-    if (hoursSince > 24 * 7) return 'welcome-back';
-    return 'workout-logged';
+  private getCelebrationForStreak(streak: number): { type: CelebrationType; title?: string; subtitle?: string } {
+    if (streak <= 1) {
+      return { type: 'workout-logged' };
+    }
+    if (streak >= 30) {
+      return { type: 'streak-30' };
+    }
+    if (streak >= 15) {
+      return { type: 'streak-15' };
+    }
+    if (streak === 8) {
+      return { type: 'streak-8' };
+    }
+    return {
+      type: 'custom',
+      title: `${streak} days in a row!`,
+      subtitle: "You're on fire. Keep it up!",
+    };
   }
 
   private setNoWorkoutState(): void {

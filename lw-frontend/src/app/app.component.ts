@@ -1,6 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet, RouterLink } from '@angular/router';
-import { AuthService } from './services/authService';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { TabBarComponent } from './components/tab-bar/tab-bar.component';
@@ -11,13 +10,21 @@ import { TabBarComponent } from './components/tab-bar/tab-bar.component';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   private router = inject(Router);
-  private auth = inject(AuthService);
   private hideLogoutRoutes = ['/login', '/onboarding'];
-  private tabBarRoutes = ['/homescreen', '/leaderboard', '/statistics'];
+  private tabBarRoutes = ['/homescreen', '/leaderboard', '/statistics', '/settings'];
   showLogout = signal(true);
   showTabBar = signal(false);
+  showSplash = signal(true);
+  splashHiding = signal(false);
+
+  ngOnInit(): void {
+    setTimeout(() => {
+      this.splashHiding.set(true);
+      setTimeout(() => this.showSplash.set(false), 400);
+    }, 1800);
+  }
 
   constructor() {
     this.updateVisibility(this.router.url);
@@ -33,14 +40,5 @@ export class AppComponent {
     const path = url.split('?')[0];
     this.showLogout.set(!this.hideLogoutRoutes.includes(path));
     this.showTabBar.set(this.tabBarRoutes.includes(path));
-  }
-
-  logout(): void {
-    this.auth.logout().subscribe({
-      complete: () => {
-        localStorage.removeItem('userId');
-        this.router.navigate(['/login']);
-      }
-    });
   }
 }
