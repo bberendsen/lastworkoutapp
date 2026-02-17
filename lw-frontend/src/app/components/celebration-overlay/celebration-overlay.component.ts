@@ -16,22 +16,22 @@ const PRESETS: Record<Exclude<CelebrationType, 'custom'>, CelebrationPreset> = {
     icon: 'check',
   },
   streak: {
-    title: 'Second workout in a row!',
+    title: '2 weeks in a row!',
     subtitle: "You're on fire. Keep it up!",
     icon: 'flame',
   },
   'streak-8': {
-    title: '8 days in a row!',
-    subtitle: 'Wow, a week of discipline.',
+    title: '8 weeks in a row!',
+    subtitle: 'Wow, 2 months of discipline.',
     icon: 'flame',
   },
   'streak-15': {
-    title: '15 days in a row!',
-    subtitle: 'Wow, 2 weeks.',
+    title: '15 weeks in a row!',
+    subtitle: 'Wow, over 3 months.',
     icon: 'flame',
   },
   'streak-30': {
-    title: "A month of workouts!",
+    title: '30 weeks in a row!',
     subtitle: 'Wow, keep on going. Amazing results!',
     icon: 'flame',
   },

@@ -1,1 +1,5 @@
 /* Statistics placeholder */
+
+.statistics-progress-circle circle:last-of-type {
+  transition: stroke-dashoffset 0.4s ease-out;
+}

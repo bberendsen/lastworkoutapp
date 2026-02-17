@@ -14,9 +14,10 @@
       <button
         type="button"
         (click)="logWorkout()"
-        class="btn-primary px-5 py-2.5 text-sm"
+        [disabled]="hasLoggedToday()"
+        class="btn-primary px-5 py-2.5 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Log workout
+        {{ hasLoggedToday() ? 'Already logged today' : 'Log workout' }}
       </button>
       @if (logWorkoutFailed()) {
         <p class="mt-3 text-sm text-gray-600">Failed to log workout. Try again.</p>
@@ -31,7 +32,7 @@
     @if (loading()) {
       <p class="text-sm text-gray-500 py-6">Loading…</p>
     } @else {
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total workouts</p>
           <p class="text-2xl font-bold text-black mt-1">{{ totalWorkouts() }}</p>
@@ -42,14 +43,56 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6 text-amber-500">
               <path fill-rule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.177 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248Z" clip-rule="evenodd" />
             </svg>
-            {{ currentStreak() }} {{ currentStreak() === 1 ? 'day' : 'days' }}
+            {{ currentStreak() }} {{ currentStreak() === 1 ? 'week' : 'weeks' }}
           </p>
         </div>
         <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Longest streak</p>
-          <p class="text-2xl font-bold text-black mt-1">{{ longestStreak() }} {{ longestStreak() === 1 ? 'day' : 'days' }}</p>
+          <p class="text-2xl font-bold text-black mt-1">{{ longestStreak() }} {{ longestStreak() === 1 ? 'week' : 'weeks' }}</p>
         </div>
       </div>
+
+      @if (chartsReady()) {
+        <div class="grid grid-cols-1 gap-6 mb-8">
+          <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm relative">
+            <div class="flex items-start justify-between gap-4 mb-1">
+              <div>
+                <h3 class="text-sm font-semibold text-black">This week</h3>
+                <p class="text-xs text-gray-500">Workouts by day · Goal: {{ weeklyGoal() }}/week</p>
+              </div>
+              <div class="relative w-14 h-14 shrink-0">
+                <svg class="statistics-progress-circle w-full h-full -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3" />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15.9"
+                    fill="none"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    [attr.stroke]="workoutsThisWeek() >= weeklyGoal() ? '#22c55e' : '#f59e0b'"
+                    [attr.stroke-dasharray]="100"
+                    [attr.stroke-dashoffset]="100 - (weeklyProgressPercent() * 100)"
+                  />
+                </svg>
+                <span class="absolute inset-0 flex items-center justify-center text-xs font-bold text-black">
+                  {{ workoutsThisWeek() }}/{{ weeklyGoal() }}
+                </span>
+              </div>
+            </div>
+            <div class="h-40 mt-2">
+              <canvas #weeklyChart></canvas>
+            </div>
+          </div>
+          <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <h3 class="text-sm font-semibold text-black mb-1">Weekly streaks</h3>
+            <p class="text-xs text-gray-500 mb-4">Last 8 weeks · Green = goal reached</p>
+            <div class="h-40">
+              <canvas #streakChart></canvas>
+            </div>
+          </div>
+        </div>
+      }
 
       <div class="flex flex-col gap-1 mb-4">
         <h2 class="text-lg font-semibold text-black">Recent workouts</h2>

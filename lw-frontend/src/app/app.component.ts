@@ -12,7 +12,7 @@ import { TabBarComponent } from './components/tab-bar/tab-bar.component';
 })
 export class AppComponent implements OnInit {
   private router = inject(Router);
-  private hideLogoutRoutes = ['/login', '/onboarding'];
+  private hideLogoutRoutes = ['/login', '/onboarding', '/onboarding/goal'];
   private tabBarRoutes = ['/homescreen', '/leaderboard', '/statistics', '/settings'];
   showLogout = signal(true);
   showTabBar = signal(false);

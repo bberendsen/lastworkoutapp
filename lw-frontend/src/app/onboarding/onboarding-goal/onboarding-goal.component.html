@@ -1,0 +1,42 @@
+<div class="container mx-auto max-w-md px-4 py-12">
+  <div class="flex flex-col items-center mb-8">
+    <div class="mb-2" aria-hidden="true">
+      <img src="/images/Logo-LastWorkout-png.png" alt="Last Workout" class="h-9 w-auto object-contain rounded-lg border border-gray-300" />
+    </div>
+    <h1 class="text-xl font-semibold text-black">Set your weekly goal</h1>
+    <p class="text-sm text-gray-500 mt-1 text-center max-w-xs">How many workouts per week do you want to aim for?</p>
+  </div>
+
+  <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="flex flex-wrap justify-center gap-2 mb-6">
+      @for (g of goals; track g) {
+        <button
+          type="button"
+          (click)="selectGoal(g)"
+          class="w-12 h-12 rounded-lg font-semibold text-sm transition-colors"
+          [class.bg-slate-900]="selectedGoal === g"
+          [class.text-white]="selectedGoal === g"
+          [class.bg-gray-100]="selectedGoal !== g"
+          [class.text-gray-700]="selectedGoal !== g"
+          [class.hover:bg-gray-200]="selectedGoal !== g"
+        >
+          {{ g }}
+        </button>
+      }
+    </div>
+    <p class="text-sm text-gray-600 text-center mb-6">
+      {{ selectedGoal }} {{ selectedGoal === 1 ? 'workout' : 'workouts' }} per week
+    </p>
+    @if (error()) {
+      <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2 mb-4">{{ error() }}</p>
+    }
+    <button
+      type="button"
+      (click)="continue()"
+      [disabled]="saving()"
+      class="btn-primary w-full h-10 text-sm"
+    >
+      {{ saving() ? 'Saving…' : 'Continue' }}
+    </button>
+  </div>
+</div>

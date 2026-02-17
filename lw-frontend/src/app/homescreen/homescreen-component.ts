@@ -1,10 +1,12 @@
-import { Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Workout, WorkoutService } from '../services/workoutService';
+import { UserService } from '../services/userService';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaderboardWithStreak, StreakService } from '../services/streakService';
 import { CelebrationOverlayComponent, CelebrationType } from '../components/celebration-overlay/celebration-overlay.component';
+import { ModalComponent } from '../components/modal/modal.component';
 
 interface TimeSinceLastWorkoutDisplay {
   days: number;
@@ -17,7 +19,7 @@ interface TimeSinceLastWorkoutDisplay {
   standalone: true,
   selector: 'app-homescreen',
   templateUrl: './homescreen-component.html',
-  imports: [RouterModule, CommonModule, FormsModule, CelebrationOverlayComponent],
+  imports: [RouterModule, CommonModule, FormsModule, CelebrationOverlayComponent, ModalComponent],
   styleUrls: ['./homescreen-component.css']
 })
 export class HomescreenComponent implements OnInit, OnDestroy {
@@ -25,15 +27,28 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   leaderboard: WritableSignal<LeaderboardWithStreak[]> = signal([]);
   currentStreak: WritableSignal<number> = signal(0);
   longestStreak: WritableSignal<number> = signal(0);
+  weeklyProgress: WritableSignal<{ workouts_this_week: number; goal: number } | null> = signal(null);
+  showGoalEditor = signal(false);
+  editingGoal = signal(3);
   userId: string = '';
   loading: WritableSignal<boolean> = signal(true);
   error: WritableSignal<string | null> = signal(null);
   workoutLoggedSuccessfully: WritableSignal<boolean> = signal(false);
   workoutLoggedFailed: WritableSignal<boolean> = signal(false);
+  workoutLoggedErrorMsg: WritableSignal<string> = signal('');
   celebrationType = signal<CelebrationType>('workout-logged');
   celebrationTitle = signal<string | undefined>(undefined);
   celebrationSubtitle = signal<string | undefined>(undefined);
   lastWorkoutTime = signal<Date | null>(null);
+  hasLoggedToday = computed(() => {
+    const list = this.workouts();
+    if (!list || list.length === 0) return false;
+    const latest = new Date(list[0].workout_datetime);
+    const today = new Date();
+    return latest.getFullYear() === today.getFullYear() &&
+      latest.getMonth() === today.getMonth() &&
+      latest.getDate() === today.getDate();
+  });
   timeSinceLastWorkout = signal<TimeSinceLastWorkoutDisplay>({
     days: 0,
     hours: 0,
@@ -43,10 +58,12 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   });
   private timerId: ReturnType<typeof setInterval> | null = null;
   private router = inject(Router);
+  readonly Math = Math;
   
   constructor(
     private workoutService: WorkoutService,
-    private streakService: StreakService
+    private streakService: StreakService,
+    private userService: UserService
   ) {}
   
   ngOnInit(): void {
@@ -93,6 +110,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
 
     this.workoutLoggedSuccessfully.set(false);
     this.workoutLoggedFailed.set(false);
+    this.workoutLoggedErrorMsg.set('');
     this.workoutService.logWorkout(this.userId).subscribe({
       next: (response) => {
         this.loadWorkouts();
@@ -101,6 +119,10 @@ export class HomescreenComponent implements OnInit, OnDestroy {
           next: (res) => {
             this.currentStreak.set(res.current_streak);
             this.longestStreak.set(res.longest_streak ?? 0);
+            this.weeklyProgress.set(res.weekly_progress ? {
+              workouts_this_week: res.weekly_progress.workouts_this_week,
+              goal: res.weekly_progress.goal
+            } : null);
             const { type, title, subtitle } = this.getCelebrationForStreak(res.current_streak);
             this.celebrationType.set(type);
             this.celebrationTitle.set(title);
@@ -123,6 +145,8 @@ export class HomescreenComponent implements OnInit, OnDestroy {
         console.error('Error logging workout:', error);
         this.workoutLoggedSuccessfully.set(false);
         this.workoutLoggedFailed.set(true);
+        const msg = error?.error?.message;
+        this.workoutLoggedErrorMsg.set(typeof msg === 'string' ? msg : 'Failed to log workout. Please try again.');
       }
     });
   }
@@ -174,10 +198,35 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.currentStreak.set(res.current_streak);
         this.longestStreak.set(res.longest_streak ?? 0);
+        this.weeklyProgress.set(res.weekly_progress ? {
+          workouts_this_week: res.weekly_progress.workouts_this_week,
+          goal: res.weekly_progress.goal
+        } : null);
       },
       error: () => {
         this.currentStreak.set(0);
         this.longestStreak.set(0);
+        this.weeklyProgress.set(null);
+      }
+    });
+  }
+
+  openGoalEditor(): void {
+    const wp = this.weeklyProgress();
+    this.editingGoal.set(wp?.goal ?? 3);
+    this.showGoalEditor.set(true);
+  }
+
+  closeGoalEditor(): void {
+    this.showGoalEditor.set(false);
+  }
+
+  saveGoal(goal: number): void {
+    if (!this.userId) return;
+    this.userService.updateUser(this.userId, { weekly_goal: goal }).subscribe({
+      next: () => {
+        this.loadCurrentStreak();
+        this.closeGoalEditor();
       }
     });
   }
@@ -261,9 +310,12 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     if (streak === 8) {
       return { type: 'streak-8' };
     }
+    if (streak === 2) {
+      return { type: 'streak' };
+    }
     return {
       type: 'custom',
-      title: `${streak} days in a row!`,
+      title: `${streak} weeks in a row!`,
       subtitle: "You're on fire. Keep it up!",
     };
   }

@@ -92,12 +92,12 @@ export class OnboardingComponent {
           localStorage.setItem('userId', loginResponse.user.id);
         }
         
-        // Navigate to homescreen with userId in state
+        // Navigate to goal screen to set weekly goal
         setTimeout(() => {
-          this.router.navigate(['/homescreen'], { 
+          this.router.navigate(['/onboarding/goal'], { 
             state: { userId: response.id } 
           });
-        }, 1000); // Small delay to show success message
+        }, 500);
       } else {
         throw new Error('No user ID in response');
       }
