@@ -29,8 +29,12 @@ export class WorkoutService {
     return this.http.get<Workout[]>(`${this.apiUrl}${userId}`);
   }
 
-  logWorkout(userId: string): Observable<any> {
-    return this.http.post<string>(`${this.apiUrl}`, { user_id: userId }).pipe(
+  logWorkout(userId: string, source: string = 'manual', workoutDatetime?: string): Observable<any> {
+    const payload: any = { user_id: userId, source };
+    if (workoutDatetime) {
+      payload.workout_datetime = workoutDatetime;
+    }
+    return this.http.post<string>(`${this.apiUrl}`, payload).pipe(
       tap((response) => {
         console.log('Workout logged:', response);
       }),

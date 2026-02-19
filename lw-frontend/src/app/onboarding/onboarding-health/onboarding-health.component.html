@@ -1,0 +1,54 @@
+<div class="container mx-auto max-w-md px-4 py-12">
+  <div class="flex flex-col items-center mb-8">
+    <div class="mb-2" aria-hidden="true">
+      <img src="/images/Logo-LastWorkout-png.png" alt="Last Workout" class="h-9 w-auto object-contain rounded-lg border border-gray-300" />
+    </div>
+    <h1 class="text-xl font-semibold text-black">Connect Apple Health</h1>
+    <p class="text-sm text-gray-500 mt-1 text-center max-w-sm">
+      Allow Last Workout to read your workouts from Apple Health. Workouts you do on your iPhone or Apple Watch will be logged automatically.
+    </p>
+  </div>
+
+  <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+    @if (isHealthAvailable) {
+      @if (permissionGranted()) {
+        <p class="text-sm text-gray-600 text-center mb-6">
+          Access granted. Your workouts will sync automatically.
+        </p>
+      } @else {
+        <p class="text-sm text-gray-600 text-center mb-4">
+          Tap below to open Health permissions. Turn on <strong>Workouts</strong> (and optionally Steps) so we can log your activity.
+        </p>
+        @if (error()) {
+          <p class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">{{ error() }}</p>
+        }
+        <button
+          type="button"
+          (click)="allowAccess()"
+          [disabled]="requesting()"
+          class="btn-primary w-full h-10 text-sm mb-3"
+        >
+          {{ requesting() ? 'Opening Health…' : 'Allow access' }}
+        </button>
+      }
+      <button
+        type="button"
+        (click)="continue()"
+        class="w-full h-10 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+      >
+        {{ permissionGranted() ? 'Continue' : 'Skip for now' }}
+      </button>
+    } @else {
+      <p class="text-sm text-gray-500 text-center mb-6">
+        Apple Health is only available on iPhone. On other devices you can log workouts manually in the app.
+      </p>
+      <button
+        type="button"
+        (click)="continue()"
+        class="btn-primary w-full h-10 text-sm"
+      >
+        Continue
+      </button>
+    }
+  </div>
+</div>

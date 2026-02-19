@@ -14,6 +14,24 @@
         <path d="M9 18l6-6-6-6" />
       </svg>
     </a>
+    @if (isHealthAvailable) {
+      <button
+        type="button"
+        (click)="syncAppleHealth()"
+        [disabled]="healthSyncing()"
+        class="w-full flex items-center justify-between py-3 px-4 border-b border-gray-100 hover:bg-gray-50 transition-colors text-left disabled:opacity-60"
+      >
+        <span class="text-sm font-medium text-black">
+          {{ healthSyncing() ? 'Syncing…' : 'Sync Apple Health' }}
+        </span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-gray-400">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </button>
+      @if (healthMessage()) {
+        <p class="text-sm px-4 py-2 border-b border-gray-100" [class.text-green-600]="healthMessage()?.includes('synced')" [class.text-amber-700]="healthMessage()?.includes('failed')">{{ healthMessage() }}</p>
+      }
+    }
     <button
       type="button"
       (click)="openPrivacy()"

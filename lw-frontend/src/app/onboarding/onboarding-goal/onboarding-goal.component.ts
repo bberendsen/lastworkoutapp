@@ -40,7 +40,7 @@ export class OnboardingGoalComponent {
     this.error.set(null);
     this.userService.updateUser(this.userId, { weekly_goal: this.selectedGoal }).subscribe({
       next: () => {
-        this.router.navigate(['/homescreen'], { state: { userId: this.userId } });
+        this.router.navigate(['/onboarding/health'], { state: { userId: this.userId } });
       },
       error: () => {
         this.error.set('Could not save goal. Try again.');

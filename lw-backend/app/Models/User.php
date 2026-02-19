@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+    use HasApiTokens;
     use HasFactory;
 
     protected $keyType = 'string';
@@ -21,6 +24,8 @@ class User extends Authenticatable
         'email',
         'password',
         'has_subscription',
+        'longest_streak',
+        'weekly_goal',
     ];
 
     protected $hidden = [
@@ -38,5 +43,7 @@ class User extends Authenticatable
         $user->id = (string) Str::uuid();
     });
 }
+
+    
 }
 
