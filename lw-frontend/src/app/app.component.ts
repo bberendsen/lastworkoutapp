@@ -16,9 +16,10 @@ import { App } from '@capacitor/app';
 export class AppComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private healthService = inject(HealthService);
-  private hideLogoutRoutes = ['/login', '/onboarding', '/onboarding/health'];
+  private hideLogoutRoutes = ['/login', '/onboarding', '/onboarding/health', '/onboarding/team'];
   private hideLogoutPrefixes = ['/reset-password'];
-  private tabBarRoutes = ['/homescreen', '/leaderboard', '/statistics', '/settings'];
+  private tabBarExactRoutes = ['/homescreen', '/leaderboard', '/statistics', '/settings', '/teams'];
+  private tabBarPrefixes = ['/settings/', '/teams/'];
   showLogout = signal(true);
   showTabBar = signal(false);
   showSplash = signal(true);
@@ -86,6 +87,9 @@ export class AppComponent implements OnInit, OnDestroy {
       this.hideLogoutRoutes.includes(path) ||
       this.hideLogoutPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
     this.showLogout.set(!hideHeader);
-    this.showTabBar.set(this.tabBarRoutes.includes(path));
+    const showTab =
+      this.tabBarExactRoutes.includes(path) ||
+      this.tabBarPrefixes.some((prefix) => path.startsWith(prefix));
+    this.showTabBar.set(showTab);
   }
 }

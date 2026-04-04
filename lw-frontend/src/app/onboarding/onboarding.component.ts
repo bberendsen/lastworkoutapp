@@ -93,7 +93,7 @@ export class OnboardingComponent {
         }
         
         setTimeout(() => {
-          this.router.navigate(['/onboarding/health'], {
+          this.router.navigate(['/onboarding/team'], {
             state: { userId: response.id },
           });
         }, 500);

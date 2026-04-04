@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -13,6 +14,7 @@ class User extends Authenticatable
     use HasFactory;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -36,13 +38,15 @@ class User extends Authenticatable
         return $this->hasMany(Workout::class);
     }
 
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'team_user')->withTimestamps();
+    }
+
     protected static function booted()
-{
-    static::creating(function ($user) {
-        $user->id = (string) Str::uuid();
-    });
+    {
+        static::creating(function ($user) {
+            $user->id = (string) Str::uuid();
+        });
+    }
 }
-
-    
-}
-

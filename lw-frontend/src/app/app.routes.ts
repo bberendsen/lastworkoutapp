@@ -6,6 +6,11 @@ import { SettingsComponent } from './settings/settings.component';
 import { AccountComponent } from './settings/account/account.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
 import { OnboardingHealthComponent } from './onboarding/onboarding-health/onboarding-health.component';
+import { OnboardingTeamComponent } from './onboarding/onboarding-team/onboarding-team.component';
+import { TeamsListComponent } from './teams/teams-list.component';
+import { TeamDetailComponent } from './teams/team-detail.component';
+import { TeamCreateComponent } from './teams/team-create.component';
+import { TeamEditComponent } from './teams/team-edit.component';
 import { LoginComponent } from './auth/login/login.component';
 import { ResetPasswordRequestComponent } from './auth/password-reset/reset-password-request.component';
 import { ResetPasswordVerifyComponent } from './auth/password-reset/reset-password-verify.component';
@@ -49,6 +54,30 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'teams/create',
+    component: TeamCreateComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full',
+  },
+  {
+    path: 'teams/:id/edit',
+    component: TeamEditComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full',
+  },
+  {
+    path: 'teams/:id',
+    component: TeamDetailComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full',
+  },
+  {
+    path: 'teams',
+    component: TeamsListComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full',
+  },
+  {
     path: 'login',
     component: LoginComponent,
     pathMatch: 'full'
@@ -72,6 +101,12 @@ export const routes: Routes = [
     path: 'onboarding',
     component: OnboardingComponent,
     pathMatch: 'full'
+  },
+  {
+    path: 'onboarding/team',
+    component: OnboardingTeamComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full',
   },
   {
     path: 'onboarding/health',

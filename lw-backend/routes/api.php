@@ -3,6 +3,7 @@
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StreakController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkoutController;
 use Illuminate\Support\Facades\Route;
@@ -30,4 +31,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/scores/{userId}', [ScoreController::class, 'show']);
     Route::get('/streak/leaderboard', [StreakController::class, 'leaderboard']);
     Route::get('/streak/{userId}', [StreakController::class, 'show']);
+
+    Route::get('/teams', [TeamController::class, 'index']);
+    Route::post('/teams', [TeamController::class, 'store']);
+    Route::get('/teams/{team}', [TeamController::class, 'show']);
+    Route::put('/teams/{team}', [TeamController::class, 'update']);
+    Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
+    Route::post('/teams/{team}/join', [TeamController::class, 'join']);
+    Route::post('/teams/{team}/leave', [TeamController::class, 'leave']);
 });
