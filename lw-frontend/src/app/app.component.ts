@@ -17,6 +17,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private healthService = inject(HealthService);
   private hideLogoutRoutes = ['/login', '/onboarding', '/onboarding/health'];
+  private hideLogoutPrefixes = ['/reset-password'];
   private tabBarRoutes = ['/homescreen', '/leaderboard', '/statistics', '/settings'];
   showLogout = signal(true);
   showTabBar = signal(false);
@@ -81,7 +82,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private updateVisibility(url: string): void {
     const path = url.split('?')[0];
-    this.showLogout.set(!this.hideLogoutRoutes.includes(path));
+    const hideHeader =
+      this.hideLogoutRoutes.includes(path) ||
+      this.hideLogoutPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+    this.showLogout.set(!hideHeader);
     this.showTabBar.set(this.tabBarRoutes.includes(path));
   }
 }

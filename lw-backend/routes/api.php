@@ -1,16 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\WorkoutController;
+use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StreakController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkoutController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/ping', function () {
     return response()->json(['status' => 'ok']);
 });
 
 Route::post('/login', [UserController::class, 'login']);
+Route::post('/password/send-code', [PasswordController::class, 'sendCode']);
+Route::post('/password/verify-code', [PasswordController::class, 'verifyCode']);
+Route::post('/password/reset', [PasswordController::class, 'resetPassword']);
 Route::post('/users', [UserController::class, 'store']);
 Route::get('/users/{id}', [UserController::class, 'show']);
 

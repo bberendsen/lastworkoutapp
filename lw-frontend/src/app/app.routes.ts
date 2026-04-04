@@ -7,6 +7,9 @@ import { AccountComponent } from './settings/account/account.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
 import { OnboardingHealthComponent } from './onboarding/onboarding-health/onboarding-health.component';
 import { LoginComponent } from './auth/login/login.component';
+import { ResetPasswordRequestComponent } from './auth/password-reset/reset-password-request.component';
+import { ResetPasswordVerifyComponent } from './auth/password-reset/reset-password-verify.component';
+import { ResetPasswordNewComponent } from './auth/password-reset/reset-password-new.component';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
@@ -49,6 +52,21 @@ export const routes: Routes = [
     path: 'login',
     component: LoginComponent,
     pathMatch: 'full'
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordRequestComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'reset-password/verify',
+    component: ResetPasswordVerifyComponent,
+    pathMatch: 'full',
+  },
+  {
+    path: 'reset-password/new',
+    component: ResetPasswordNewComponent,
+    pathMatch: 'full',
   },
   {
     path: 'onboarding',
