@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TeamService } from '../services/team.service';
-import { TEAM_GRADIENT_PRESETS, teamPresetCardClass, type TeamGradientPreset } from './team.models';
+import { TEAM_GRADIENT_PRESETS, teamPresetLinearGradient, type TeamGradientPreset } from './team.models';
 
 @Component({
   selector: 'app-team-create',
@@ -16,7 +16,7 @@ export class TeamCreateComponent implements OnDestroy {
   private router = inject(Router);
 
   presets = TEAM_GRADIENT_PRESETS;
-  presetCardClass = teamPresetCardClass;
+  readonly presetGradient = teamPresetLinearGradient;
   submitting = signal(false);
   error = signal<string | null>(null);
   logoFile = signal<File | null>(null);

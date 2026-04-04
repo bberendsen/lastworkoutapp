@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import { TeamService } from '../services/team.service';
 import type { TeamSummary } from './team.models';
-import { teamStrokeClass, teamPresetStripClass } from './team.models';
+import { teamPresetLinearGradient } from './team.models';
 
 @Component({
   selector: 'app-teams-list',
@@ -21,8 +21,7 @@ export class TeamsListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  strokeClass = teamStrokeClass;
-  stripClass = teamPresetStripClass;
+  readonly presetGradient = teamPresetLinearGradient;
 
   ngOnInit(): void {
     this.load();

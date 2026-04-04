@@ -4,6 +4,7 @@ use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StreakController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TeamJoinRequestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkoutController;
 use Illuminate\Support\Facades\Route;
@@ -39,4 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
     Route::post('/teams/{team}/join', [TeamController::class, 'join']);
     Route::post('/teams/{team}/leave', [TeamController::class, 'leave']);
+    Route::get('/teams/{team}/join-requests', [TeamJoinRequestController::class, 'index']);
+    Route::post('/teams/{team}/join-requests/{joinRequest}/approve', [TeamJoinRequestController::class, 'approve']);
+    Route::post('/teams/{team}/join-requests/{joinRequest}/reject', [TeamJoinRequestController::class, 'reject']);
 });

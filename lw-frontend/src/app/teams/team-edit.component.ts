@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TeamService } from '../services/team.service';
-import { TEAM_GRADIENT_PRESETS, teamPresetCardClass, type TeamGradientPreset } from './team.models';
+import { TEAM_GRADIENT_PRESETS, teamPresetLinearGradient, type TeamGradientPreset } from './team.models';
 
 @Component({
   selector: 'app-team-edit',
@@ -19,7 +19,7 @@ export class TeamEditComponent implements OnInit, OnDestroy {
   teamId = '';
   existingLogoUrl = signal<string | null>(null);
   presets = TEAM_GRADIENT_PRESETS;
-  presetCardClass = teamPresetCardClass;
+  readonly presetGradient = teamPresetLinearGradient;
   loading = signal(true);
   loadError = signal<string | null>(null);
   saveError = signal<string | null>(null);

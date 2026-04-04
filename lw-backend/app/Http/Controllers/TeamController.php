@@ -19,18 +19,26 @@ class TeamController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $memberTeamIds = $user->teams()->pluck('id')->all();
+        $memberTeamIds = $user->teams()->pluck('teams.id')->all();
 
         $teams = Team::query()
             ->withCount('users')
+            ->withExists([
+                'joinRequests as viewer_has_pending_join_request' => function ($query) use ($user): void {
+                    $query->where('user_id', $user->id);
+                },
+            ])
             ->orderBy('name')
             ->get();
 
-        $payload = $teams->map(fn (Team $team) => TeamSummaryResponse::from(
-            $team,
-            $memberTeamIds,
-            (string) $user->id
-        ))->values()->all();
+        $payload = $teams->map(function (Team $team) use ($memberTeamIds, $user) {
+            return TeamSummaryResponse::from(
+                $team,
+                $memberTeamIds,
+                (string) $user->id,
+                (bool) $team->viewer_has_pending_join_request
+            );
+        })->values()->all();
 
         return response()->json(['teams' => $payload]);
     }
@@ -39,7 +47,12 @@ class TeamController extends Controller
     {
         $team->load(['users' => fn ($q) => $q->orderBy('username')]);
 
-        return response()->json(TeamDetailResponse::from($team, $request->user()));
+        $viewer = $request->user();
+        if ($viewer && (string) $team->created_by === (string) $viewer->id) {
+            $team->loadCount('joinRequests');
+        }
+
+        return response()->json(TeamDetailResponse::from($team, $viewer));
     }
 
     public function store(StoreTeamRequest $request)
@@ -64,7 +77,7 @@ class TeamController extends Controller
         $team->loadCount('users');
 
         return response()->json(
-            TeamSummaryResponse::from($team, [$team->id], (string) $user->id),
+            TeamSummaryResponse::from($team, [$team->id], (string) $user->id, false),
             201
         );
     }
@@ -81,10 +94,14 @@ class TeamController extends Controller
         $team->update(array_filter($data, fn ($v) => $v !== null));
 
         $team->loadCount('users');
-        $memberTeamIds = $request->user()->teams()->pluck('id')->all();
+        $memberTeamIds = $request->user()->teams()->pluck('teams.id')->all();
+
+        $pending = $team->joinRequests()
+            ->where('user_id', $request->user()->id)
+            ->exists();
 
         return response()->json(
-            TeamSummaryResponse::from($team, $memberTeamIds, (string) $request->user()->id)
+            TeamSummaryResponse::from($team, $memberTeamIds, (string) $request->user()->id, $pending)
         );
     }
 
@@ -110,7 +127,14 @@ class TeamController extends Controller
             return response()->json(['message' => 'You are already a member of this team.'], 422);
         }
 
-        $team->users()->attach($user->id);
+        if ($team->joinRequests()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'You already have a pending request for this team.'], 422);
+        }
+
+        $team->joinRequests()->create([
+            'user_id' => $user->id,
+        ]);
+
         $team->load(['users' => fn ($q) => $q->orderBy('username')]);
 
         return response()->json(TeamDetailResponse::from($team, $user));

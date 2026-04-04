@@ -1,5 +1,5 @@
 <div class="container mx-auto max-w-2xl px-4 py-8">
-  <div class="flex items-center gap-4 mb-6">
+  <div class="flex items-center gap-4 mb-4">
     <a routerLink="/teams" class="text-gray-500 hover:text-black transition-colors" aria-label="Back to teams">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6">
         <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -7,18 +7,63 @@
     </a>
     <div class="flex flex-col gap-1 min-w-0 flex-1">
       <span class="text-xs font-normal text-gray-500">Team</span>
-      @if (team()) {
-        <h1 class="text-xl font-semibold text-black truncate">{{ team()!.name }}</h1>
+      @if (team(); as ht) {
+        <div
+          class="mb-1 shrink-0 rounded-sm"
+          [style.width.px]="8"
+          [style.height.px]="1"
+          [style.background]="presetGradient(ht.gradient_preset)"
+          aria-hidden="true"
+        ></div>
+        <h1 class="text-xl font-semibold text-black truncate">{{ ht.name }}</h1>
       }
     </div>
-    @if (team(); as headerTeam) {
-      @if (headerTeam.is_creator) {
-        <a [routerLink]="['/teams', headerTeam.id, 'edit']" class="shrink-0 text-sm font-medium text-black hover:underline">
+    @if (team(); as ht) {
+      @if (ht.is_creator) {
+        <a [routerLink]="['/teams', ht.id, 'edit']" class="shrink-0 text-sm font-medium text-black hover:underline">
           Edit
         </a>
       }
     }
   </div>
+
+  @if (team(); as t) {
+    @if (t.is_creator) {
+      <div class="flex gap-1 p-1 rounded-lg bg-gray-100 mb-6" role="tablist" aria-label="Team sections">
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'details'"
+          (click)="setTab('details')"
+          class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          [class.bg-white]="activeTab() === 'details'"
+          [class.text-black]="activeTab() === 'details'"
+          [class.shadow-sm]="activeTab() === 'details'"
+          [class.text-gray-600]="activeTab() !== 'details'"
+        >
+          Details
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'requests'"
+          (click)="setTab('requests')"
+          class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+          [class.bg-white]="activeTab() === 'requests'"
+          [class.text-black]="activeTab() === 'requests'"
+          [class.shadow-sm]="activeTab() === 'requests'"
+          [class.text-gray-600]="activeTab() !== 'requests'"
+        >
+          Requests
+          @if ((t.pending_join_requests_count ?? 0) > 0) {
+            <span class="ml-1.5 inline-flex min-w-[1.25rem] justify-center rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              {{ t.pending_join_requests_count }}
+            </span>
+          }
+        </button>
+      </div>
+    }
+  }
 
   @if (loading()) {
     <p class="text-sm text-gray-500 py-6">Loading…</p>
@@ -26,71 +71,152 @@
     <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ error() }}</p>
   } @else {
     @if (team(); as t) {
-    <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm mb-6">
-      <div class="flex gap-4 items-stretch">
-        <div [class]="stripClass(t.gradient_preset)" class="self-stretch min-h-[4rem]" aria-hidden="true"></div>
-        @if (t.logo_url) {
-          <img [src]="t.logo_url" alt="" class="h-16 w-16 rounded-xl object-cover border border-gray-200 shrink-0 self-start" />
-        } @else {
-          <div
-            class="h-16 w-16 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-xl font-semibold text-gray-600 shrink-0"
-            aria-hidden="true"
-          >
-            {{ t.name.charAt(0).toUpperCase() }}
+      @if (!t.is_creator || activeTab() === 'details') {
+        <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm mb-6">
+          <div class="flex gap-4 items-start">
+            @if (t.logo_url) {
+              <img [src]="t.logo_url" alt="" class="h-16 w-16 rounded-xl object-cover border border-gray-200 shrink-0" />
+            } @else {
+              <div
+                class="h-16 w-16 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-xl font-semibold text-gray-600 shrink-0"
+                aria-hidden="true"
+              >
+                {{ t.name.charAt(0).toUpperCase() }}
+              </div>
+            }
+            <div class="min-w-0 flex-1 pt-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span
+                  class="inline-block rounded-full shrink-0 ring-1 ring-black/10"
+                  [style.width.px]="10"
+                  [style.height.px]="10"
+                  [style.background]="presetGradient(t.gradient_preset)"
+                  aria-hidden="true"
+                ></span>
+                <p class="text-sm text-gray-600">
+                  {{ t.members_count }} {{ t.members_count === 1 ? 'member' : 'members' }}
+                </p>
+              </div>
+            </div>
           </div>
-        }
-        <div class="min-w-0 flex-1">
-          <div [class]="strokeClass(t.gradient_preset)" class="mb-3 max-w-[240px]"></div>
-          <p class="text-sm text-gray-600">
-            {{ t.members_count }} {{ t.members_count === 1 ? 'member' : 'members' }}
-          </p>
-        </div>
-      </div>
 
-      @if (actionError()) {
-        <p class="mt-4 text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ actionError() }}</p>
+          @if (actionError()) {
+            <p class="mt-4 text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ actionError() }}</p>
+          }
+
+          <div class="mt-6 flex flex-col sm:flex-row gap-2">
+            @if (!t.is_member) {
+              @if (t.has_pending_request) {
+                <button type="button" disabled class="flex-1 h-10 text-sm rounded-lg border border-gray-200 bg-gray-50 font-medium text-gray-500 cursor-not-allowed">
+                  Request pending
+                </button>
+              } @else {
+                <button type="button" (click)="requestToJoin()" [disabled]="busy()" class="btn-primary flex-1 h-10 text-sm">
+                  {{ busy() ? '…' : 'Request to join' }}
+                </button>
+              }
+            } @else {
+              <button
+                type="button"
+                (click)="leave()"
+                [disabled]="busy()"
+                class="flex-1 h-10 text-sm rounded-lg border border-gray-300 bg-white font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {{ busy() ? '…' : 'Leave team' }}
+              </button>
+            }
+            @if (t.is_creator && t.members_count === 0) {
+              <button
+                type="button"
+                (click)="openDeleteModal()"
+                class="flex-1 h-10 text-sm rounded-lg border border-red-200 bg-red-50 font-medium text-red-800 hover:bg-red-100"
+              >
+                Delete team
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <h2 class="text-sm font-semibold text-black px-4 py-3 border-b border-gray-100">Members</h2>
+          <ul class="divide-y divide-gray-100">
+            @for (m of t.members; track m.id) {
+              <li class="px-4 py-3 flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-black truncate">{{ m.first_name }} {{ m.last_name }}</p>
+                  <p class="text-xs text-gray-500 truncate">{{ '@' + m.username }}</p>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
       }
 
-      <div class="mt-6 flex flex-col sm:flex-row gap-2">
-        @if (!t.is_member) {
-          <button type="button" (click)="join()" [disabled]="busy()" class="btn-primary flex-1 h-10 text-sm">
-            {{ busy() ? '…' : 'Join team' }}
-          </button>
-        } @else {
-          <button
-            type="button"
-            (click)="leave()"
-            [disabled]="busy()"
-            class="flex-1 h-10 text-sm rounded-lg border border-gray-300 bg-white font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50"
-          >
-            {{ busy() ? '…' : 'Leave team' }}
-          </button>
-        }
-        @if (t.is_creator && t.members_count === 0) {
-          <button
-            type="button"
-            (click)="openDeleteModal()"
-            class="flex-1 h-10 text-sm rounded-lg border border-red-200 bg-red-50 font-medium text-red-800 hover:bg-red-100"
-          >
-            Delete team
-          </button>
-        }
-      </div>
-    </div>
-
-    <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
-      <h2 class="text-sm font-semibold text-black px-4 py-3 border-b border-gray-100">Members</h2>
-      <ul class="divide-y divide-gray-100">
-        @for (m of t.members; track m.id) {
-          <li class="px-4 py-3 flex items-center justify-between gap-2">
-            <div class="min-w-0">
-              <p class="text-sm font-medium text-black truncate">{{ m.first_name }} {{ m.last_name }}</p>
-              <p class="text-xs text-gray-500 truncate">{{ '@' + m.username }}</p>
+      @if (t.is_creator && activeTab() === 'requests') {
+        <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <h2 class="text-sm font-semibold text-black">Join requests</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Only you as creator can approve or decline.</p>
+          </div>
+          @if (joinRequestsLoading()) {
+            <p class="text-sm text-gray-500 px-4 py-6">Loading…</p>
+          } @else if (joinRequestsError()) {
+            <p class="text-sm text-gray-600 px-4 py-4">{{ joinRequestsError() }}</p>
+            <div class="px-4 pb-4">
+              <button type="button" (click)="loadJoinRequests()" class="text-sm font-medium text-black underline">Try again</button>
             </div>
-          </li>
-        }
-      </ul>
-    </div>
+          } @else if (joinRequests().length === 0) {
+            <p class="text-sm text-gray-500 px-4 py-8 text-center">No open requests.</p>
+          } @else {
+            <ul class="divide-y divide-gray-100">
+              @for (req of joinRequests(); track req.id) {
+                <li class="px-4 py-3 flex items-center gap-3">
+                  <div
+                    class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600 shrink-0"
+                    aria-hidden="true"
+                  >
+                    {{ req.user.username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-black truncate">{{ '@' + req.user.username }}</p>
+                    <p class="text-xs text-gray-500">
+                      @if (req.user.age !== null && req.user.age !== undefined) {
+                        {{ req.user.age }} years old
+                      } @else {
+                        Age unknown
+                      }
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      (click)="approveRequest(req)"
+                      [disabled]="processingRequestId() !== null"
+                      class="h-8 w-8 inline-flex items-center justify-center rounded-full border border-emerald-600 text-emerald-600 bg-transparent hover:bg-emerald-50 disabled:opacity-40 focus-ring"
+                      aria-label="Approve"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+                        <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="rejectRequest(req)"
+                      [disabled]="processingRequestId() !== null"
+                      class="h-8 w-8 inline-flex items-center justify-center rounded-full border border-red-500 text-red-600 bg-transparent hover:bg-red-50 disabled:opacity-40 focus-ring"
+                      aria-label="Decline"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
     }
   }
 </div>

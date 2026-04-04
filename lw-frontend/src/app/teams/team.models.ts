@@ -15,6 +15,16 @@ export const TEAM_GRADIENT_PRESETS: { id: TeamGradientPreset; label: string }[] 
   { id: 'midnight_purple', label: 'Midnight' },
 ];
 
+/** Inline CSS gradients (avoids Tailwind/layer issues with dynamic class names). */
+export const TEAM_PRESET_LINEAR_GRADIENT: Record<TeamGradientPreset, string> = {
+  amber_emerald: 'linear-gradient(135deg, #f59e0b 0%, #10b981 100%)',
+  rose_violet: 'linear-gradient(135deg, #f43f5e 0%, #8b5cf6 100%)',
+  sky_indigo: 'linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)',
+  ocean_teal: 'linear-gradient(135deg, #0284c7 0%, #14b8a6 100%)',
+  sunset_orange: 'linear-gradient(135deg, #fb923c 0%, #ef4444 100%)',
+  midnight_purple: 'linear-gradient(135deg, #312e81 0%, #7c3aed 100%)',
+};
+
 export interface TeamSummary {
   id: string;
   name: string;
@@ -23,6 +33,7 @@ export interface TeamSummary {
   members_count: number;
   is_member: boolean;
   is_creator: boolean;
+  has_pending_request?: boolean;
 }
 
 export interface TeamMember {
@@ -34,24 +45,27 @@ export interface TeamMember {
 
 export interface TeamDetail extends TeamSummary {
   members: TeamMember[];
+  has_pending_request?: boolean;
+  /** Only meaningful when you are the team creator */
+  pending_join_requests_count?: number;
 }
 
-export function teamStrokeClass(preset: string): string {
-  const allowed: TeamGradientPreset[] = TEAM_GRADIENT_PRESETS.map((p) => p.id);
-  const key = allowed.includes(preset as TeamGradientPreset) ? preset : 'sky_indigo';
-  return `team-stroke team-stroke--${key}`;
+export interface TeamJoinRequestItem {
+  id: number;
+  user: {
+    id: string;
+    username: string;
+    age: number | null;
+  };
 }
 
-/** Full-area gradient for preset picker cards */
-export function teamPresetCardClass(preset: string): string {
-  const allowed: TeamGradientPreset[] = TEAM_GRADIENT_PRESETS.map((p) => p.id);
-  const key = allowed.includes(preset as TeamGradientPreset) ? preset : 'sky_indigo';
-  return `team-preset-card team-preset-card--${key}`;
+function presetKey(preset: string): TeamGradientPreset {
+  const allowed = TEAM_GRADIENT_PRESETS.map((p) => p.id);
+  return allowed.includes(preset as TeamGradientPreset) ? (preset as TeamGradientPreset) : 'sky_indigo';
 }
 
-/** Vertical strip for compact lists (e.g. team overview rows) */
-export function teamPresetStripClass(preset: string): string {
-  const allowed: TeamGradientPreset[] = TEAM_GRADIENT_PRESETS.map((p) => p.id);
-  const key = allowed.includes(preset as TeamGradientPreset) ? preset : 'sky_indigo';
-  return `team-preset-strip team-preset-strip--${key}`;
+/** Use with [style.background] so gradients always render (not purged / not 1px-tall issues). */
+export function teamPresetLinearGradient(preset: string): string {
+  const k = presetKey(preset);
+  return TEAM_PRESET_LINEAR_GRADIENT[k];
 }

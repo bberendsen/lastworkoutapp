@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import { TeamService } from '../../services/team.service';
 import type { TeamSummary } from '../../teams/team.models';
-import { teamStrokeClass, teamPresetStripClass } from '../../teams/team.models';
+import { teamPresetLinearGradient } from '../../teams/team.models';
 
 @Component({
   selector: 'app-onboarding-team',
@@ -24,8 +24,7 @@ export class OnboardingTeamComponent implements OnInit {
   busy = signal(false);
   actionError = signal<string | null>(null);
 
-  strokeClass = teamStrokeClass;
-  stripClass = teamPresetStripClass;
+  readonly presetGradient = teamPresetLinearGradient;
 
   ngOnInit(): void {
     if (!localStorage.getItem('userId')) {
@@ -39,8 +38,11 @@ export class OnboardingTeamComponent implements OnInit {
         next: (list) => {
           this.teams.set(list);
           const member = list.find((t) => t.is_member);
+          const pending = list.find((t) => t.has_pending_request);
           if (member) {
             this.selectedId.set(member.id);
+          } else if (pending) {
+            this.selectedId.set(pending.id);
           }
         },
         error: (err: HttpErrorResponse) => {
@@ -68,13 +70,13 @@ export class OnboardingTeamComponent implements OnInit {
       return;
     }
     const team = this.teams().find((t) => t.id === id);
-    if (team?.is_member) {
+    if (team?.is_member || team?.has_pending_request) {
       void this.router.navigate(['/onboarding/health']);
       return;
     }
     this.busy.set(true);
     this.actionError.set(null);
-    this.teamService.joinTeam(id).subscribe({
+    this.teamService.requestToJoin(id).subscribe({
       next: () => {
         void this.router.navigate(['/onboarding/health']);
       },

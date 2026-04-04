@@ -33,6 +33,16 @@ class User extends Authenticatable
         'password',
     ];
 
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'birthdate' => 'date',
+        ];
+    }
+
     public function workouts()
     {
         return $this->hasMany(Workout::class);
