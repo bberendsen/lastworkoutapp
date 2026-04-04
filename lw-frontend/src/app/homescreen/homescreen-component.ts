@@ -83,8 +83,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       }
     }
 
-    console.log('Homescreen loaded');
-    console.log('User ID:', this.userId);
+
 
     if (this.userId) {
       this.loadWorkouts();
@@ -167,7 +166,6 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       next: (workouts) => {
         this.workouts.set(workouts);
         this.loading.set(false);
-        console.log('Workouts loaded:', workouts);
         this.setLastWorkoutTime(workouts);
       },
       error: (error) => {
@@ -184,7 +182,6 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     this.streakService.getLeaderboardWithStreaks().subscribe({
       next: (leaderboard) => {
         this.leaderboard.set(leaderboard);
-        console.log('Leaderboard loaded:', leaderboard);
         this.loading.set(false);
       },
       error: (error) => {

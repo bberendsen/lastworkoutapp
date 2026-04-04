@@ -36,7 +36,6 @@ export class WorkoutService {
     }
     return this.http.post<string>(`${this.apiUrl}`, payload).pipe(
       tap((response) => {
-        console.log('Workout logged:', response);
       }),
       catchError((error) => {
         console.error('Error logging workout:', error);

@@ -19,7 +19,7 @@ export class LeaderboardComponent implements OnInit {
     this.streakService.getLeaderboardWithStreaks().subscribe({
       next: (leaderboard) => {
         this.leaderboard.set(leaderboard);
-        console.log('Leaderboard loaded:', leaderboard);
+        
       },
       error: (error) => {
         console.error('Error loading leaderboard:', error);
