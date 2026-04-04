@@ -46,6 +46,8 @@ export interface TeamMember {
 export interface TeamDetail extends TeamSummary {
   members: TeamMember[];
   has_pending_request?: boolean;
+  /** True when you belong to a different team (cannot request to join this one). */
+  already_in_another_team?: boolean;
   /** Only meaningful when you are the team creator */
   pending_join_requests_count?: number;
 }

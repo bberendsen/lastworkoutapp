@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -20,6 +20,9 @@ export class TeamsListComponent implements OnInit {
   teams = signal<TeamSummary[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  /** One team per user — hide create until they leave. */
+  hasTeamMembership = computed(() => this.teams().some((t) => t.is_member));
 
   readonly presetGradient = teamPresetLinearGradient;
 

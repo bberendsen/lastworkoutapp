@@ -4,12 +4,16 @@
       <h1 class="text-xl font-semibold text-black">Teams</h1>
       <span class="text-xs font-normal text-gray-500">Browse teams and open details</span>
     </div>
-    <a
-      routerLink="/teams/create"
-      class="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-black hover:bg-gray-50 transition-colors focus-ring"
-    >
-      New team
-    </a>
+    @if (hasTeamMembership()) {
+      <span class="shrink-0 text-xs text-gray-500 max-w-[10rem] text-right leading-snug">Leave your team to create a new one</span>
+    } @else {
+      <a
+        routerLink="/teams/create"
+        class="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-black hover:bg-gray-50 transition-colors focus-ring"
+      >
+        New team
+      </a>
+    }
   </div>
 
   @if (loading()) {

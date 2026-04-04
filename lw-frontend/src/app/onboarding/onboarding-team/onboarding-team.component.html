@@ -13,6 +13,11 @@
     <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ error() }}</p>
     <button type="button" (click)="skip()" class="mt-4 w-full btn-primary h-10 text-sm">Continue without team</button>
   } @else {
+    @if (memberTeam(); as mt) {
+      <p class="text-sm text-gray-700 rounded-md bg-gray-50 border border-gray-200 px-3 py-2 mb-4">
+        You’re already in <span class="font-medium text-black">{{ mt.name }}</span>. You can switch teams later by leaving first.
+      </p>
+    }
     @if (actionError()) {
       <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2 mb-4">{{ actionError() }}</p>
     }
@@ -22,8 +27,11 @@
           <button
             type="button"
             (click)="selectTeam(team.id)"
+            [disabled]="busy() || (!!memberTeam() && !team.is_member)"
             [class.bg-gray-50]="selectedId() === team.id"
-            class="w-full text-left py-3 px-4 flex gap-3 items-center min-w-0 hover:bg-gray-50/80 transition-colors"
+            [class.opacity-50]="!!memberTeam() && !team.is_member"
+            [class.cursor-not-allowed]="!!memberTeam() && !team.is_member"
+            class="w-full text-left py-3 px-4 flex gap-3 items-center min-w-0 hover:bg-gray-50/80 transition-colors disabled:pointer-events-none"
           >
             <span
               class="inline-block rounded-full shrink-0 ring-1 ring-black/10"

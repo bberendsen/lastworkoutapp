@@ -106,7 +106,11 @@
 
           <div class="mt-6 flex flex-col sm:flex-row gap-2">
             @if (!t.is_member) {
-              @if (t.has_pending_request) {
+              @if (t.already_in_another_team) {
+                <p class="flex-1 text-sm text-gray-600 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                  You’re already in a team. Leave that team first if you want to join this one.
+                </p>
+              } @else if (t.has_pending_request) {
                 <button type="button" disabled class="flex-1 h-10 text-sm rounded-lg border border-gray-200 bg-gray-50 font-medium text-gray-500 cursor-not-allowed">
                   Request pending
                 </button>

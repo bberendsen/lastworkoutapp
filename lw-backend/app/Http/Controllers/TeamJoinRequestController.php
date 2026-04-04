@@ -32,6 +32,12 @@ class TeamJoinRequestController extends Controller
 
         $user = $joinRequest->user;
 
+        if ($user->teams()->exists()) {
+            return response()->json([
+                'message' => 'This user is already in another team. They must leave it before they can join.',
+            ], 422);
+        }
+
         DB::transaction(function () use ($team, $joinRequest, $user): void {
             if (! $team->users()->where('users.id', $user->id)->exists()) {
                 $team->users()->attach($user->id);

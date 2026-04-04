@@ -114,8 +114,8 @@ export class TeamDetailComponent implements OnInit {
         this.joinRequests.update((list) => list.filter((r) => r.id !== req.id));
         this.processingRequestId.set(null);
       },
-      error: () => {
-        this.joinRequestsError.set('Could not approve.');
+      error: (err: { error?: { message?: string } }) => {
+        this.joinRequestsError.set(err?.error?.message ?? 'Could not approve.');
         this.processingRequestId.set(null);
       },
     });

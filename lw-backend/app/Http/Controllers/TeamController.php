@@ -131,6 +131,10 @@ class TeamController extends Controller
             return response()->json(['message' => 'You already have a pending request for this team.'], 422);
         }
 
+        if ($user->teams()->exists()) {
+            return response()->json(['message' => 'You are already in a team. Leave it before joining another.'], 422);
+        }
+
         $team->joinRequests()->create([
             'user_id' => $user->id,
         ]);

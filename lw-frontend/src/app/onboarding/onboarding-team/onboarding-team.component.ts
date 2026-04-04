@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -23,6 +23,9 @@ export class OnboardingTeamComponent implements OnInit {
   selectedId = signal<string | null>(null);
   busy = signal(false);
   actionError = signal<string | null>(null);
+
+  /** When set, user cannot request to join other teams (one team per account). */
+  memberTeam = computed(() => this.teams().find((t) => t.is_member));
 
   readonly presetGradient = teamPresetLinearGradient;
 

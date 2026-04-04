@@ -32,6 +32,10 @@ final class TeamDetailResponse
             ? (int) ($team->join_requests_count ?? $team->joinRequests()->count())
             : 0;
 
+        $isMember = $viewerId !== null && $members->contains(fn (User $u) => (string) $u->id === $viewerId);
+
+        $alreadyInAnotherTeam = $viewer !== null && ! $isMember && $viewer->teams()->exists();
+
         return [
             'id' => $team->id,
             'name' => $team->name,
@@ -39,10 +43,11 @@ final class TeamDetailResponse
             'gradient_preset' => $team->gradient_preset,
             'members_count' => $members->count(),
             'members' => $memberPayloads,
-            'is_member' => $viewerId !== null && $members->contains(fn (User $u) => (string) $u->id === $viewerId),
+            'is_member' => $isMember,
             'is_creator' => $isCreator,
             'has_pending_request' => $hasPendingRequest,
             'pending_join_requests_count' => $pendingJoinRequestsCount,
+            'already_in_another_team' => $alreadyInAnotherTeam,
         ];
     }
 }
