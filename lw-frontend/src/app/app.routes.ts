@@ -11,6 +11,7 @@ import { TeamsListComponent } from './teams/teams-list.component';
 import { TeamDetailComponent } from './teams/team-detail.component';
 import { TeamCreateComponent } from './teams/team-create.component';
 import { TeamEditComponent } from './teams/team-edit.component';
+import { UserProfileComponent } from './users/user-profile.component';
 import { LoginComponent } from './auth/login/login.component';
 import { ResetPasswordRequestComponent } from './auth/password-reset/reset-password-request.component';
 import { ResetPasswordVerifyComponent } from './auth/password-reset/reset-password-verify.component';
@@ -28,6 +29,12 @@ export const routes: Routes = [
     component: HomescreenComponent,
     canActivate: [authGuard],
     pathMatch: 'full'
+  },
+  {
+    path: 'users/:userId',
+    component: UserProfileComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full',
   },
   {
     path: 'leaderboard',

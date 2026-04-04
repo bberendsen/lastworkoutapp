@@ -12,6 +12,30 @@ export interface User {
   has_subscription?: boolean;
 }
 
+export interface UserProfileTeam {
+  id: string;
+  name: string;
+  gradient_preset: string;
+  logo_url: string | null;
+}
+
+export interface UserProfilePayload {
+  profile: {
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    age: number | null;
+  };
+  team: UserProfileTeam | null;
+  stats: {
+    total_workouts: number;
+    last_workout_at: string | null;
+    current_streak: number;
+    longest_streak: number;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +45,11 @@ export class UserService {
 
   getUser(id: string): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`);
+  }
+
+  /** Authenticated: view another user’s public profile, team label, and stats. */
+  getUserProfile(userId: string): Observable<UserProfilePayload> {
+    return this.http.get<UserProfilePayload>(`${this.apiUrl}/users/${userId}/profile`);
   }
 
   updateUser(id: string, data: Partial<Pick<User, 'first_name' | 'last_name' | 'username'>>): Observable<User> {

@@ -8,12 +8,19 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Responses\DeleteUserResponse;
 use App\Http\Responses\LoginApiResponse;
 use App\Http\Responses\ShowUserResponse;
+use App\Http\Responses\UserProfileResponse;
 use App\Models\User;
+use App\Services\StreakService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function __construct(
+        private StreakService $streakService
+    ) {}
+
     public function store(StoreUserRequest $request)
     {
         $validated = $request->validated();
@@ -29,6 +36,27 @@ class UserController extends Controller
     public function show($id)
     {
         return response()->json(ShowUserResponse::from(User::findOrFail($id)));
+    }
+
+    /**
+     * Public profile + stats for another member (authenticated). No email.
+     */
+    public function profile(User $user): JsonResponse
+    {
+        $team = $user->teams()->first();
+        $totalWorkouts = $user->workouts()->count();
+        $lastWorkout = $user->workouts()->latest('workout_datetime')->first();
+        $currentStreak = $this->streakService->getCurrentStreak($user->id);
+        $longestStreak = (int) ($user->longest_streak ?? 0);
+
+        return response()->json(UserProfileResponse::from(
+            $user,
+            $team,
+            $totalWorkouts,
+            $lastWorkout?->workout_datetime,
+            $currentStreak,
+            $longestStreak
+        ));
     }
 
     public function update(UpdateUserRequest $request, $id)

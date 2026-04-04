@@ -32,7 +32,9 @@
                     class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
                 >
                     <td class="py-2 px-2 text-gray-400 font-medium">{{ i + 1 }}</td>
-                    <td class="py-2 px-3 text-black font-medium">{{ item.username }}</td>
+                    <td class="py-2 px-3">
+                        <a [routerLink]="['/users', item.id]" class="text-black font-medium hover:underline">{{ item.username }}</a>
+                    </td>
                     @if (item.current_streak > 0) {
                     <td class="py-2 px-2 text-center">
                         <span class="inline-flex items-center justify-center gap-1 text-gray-600 font-medium">

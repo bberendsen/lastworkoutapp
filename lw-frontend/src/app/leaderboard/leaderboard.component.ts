@@ -1,4 +1,4 @@
-import { Component, inject, signal, WritableSignal } from '@angular/core';
+import { Component, inject, OnInit, signal, WritableSignal } from '@angular/core';
 import { LeaderboardWithStreak, StreakService } from '../services/streakService';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
@@ -10,7 +10,7 @@ import { RouterModule, Router } from '@angular/router';
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.css']
 })
-export class LeaderboardComponent {
+export class LeaderboardComponent implements OnInit {
   leaderboard: WritableSignal<LeaderboardWithStreak[]> = signal([]);
   private router = inject(Router);
   constructor(private streakService: StreakService) {}

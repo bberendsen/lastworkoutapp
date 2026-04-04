@@ -5,6 +5,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaderboardWithStreak, StreakService } from '../services/streakService';
 import { CelebrationOverlayComponent, CelebrationType } from '../components/celebration-overlay/celebration-overlay.component';
+import { TeamService } from '../services/team.service';
+import type { TeamSummary } from '../teams/team.models';
+import { teamPresetLinearGradient } from '../teams/team.models';
 
 interface TimeSinceLastWorkoutDisplay {
   days: number;
@@ -54,8 +57,12 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   });
   private timerId: ReturnType<typeof setInterval> | null = null;
   private router = inject(Router);
+  private teamService = inject(TeamService);
   readonly Math = Math;
-  
+  readonly presetGradient = teamPresetLinearGradient;
+  /** Team you’re a member of (one per account); null if none or load failed. */
+  myTeam: WritableSignal<TeamSummary | null> = signal(null);
+
   constructor(
     private workoutService: WorkoutService,
     private streakService: StreakService
@@ -82,6 +89,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     if (this.userId) {
       this.loadWorkouts();
       this.loadCurrentStreak();
+      this.loadMyTeam();
       // Store userId for future use
       localStorage.setItem('userId', this.userId);
     } else {
@@ -184,6 +192,17 @@ export class HomescreenComponent implements OnInit, OnDestroy {
         this.error.set('Failed to load leaderboard');
         this.loading.set(false);
       }
+    });
+  }
+
+  private loadMyTeam(): void {
+    this.teamService.listTeams().subscribe({
+      next: (list) => {
+        this.myTeam.set(list.find((t) => t.is_member) ?? null);
+      },
+      error: () => {
+        this.myTeam.set(null);
+      },
     });
   }
 
