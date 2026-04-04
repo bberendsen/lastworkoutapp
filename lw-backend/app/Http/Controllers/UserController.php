@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DeleteUserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Responses\DeleteUserResponse;
 use App\Http\Responses\LoginApiResponse;
 use App\Http\Responses\ShowUserResponse;
 use App\Models\User;
@@ -59,5 +61,14 @@ class UserController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json(LoginApiResponse::from($user, $token));
+    }
+
+    public function destroy(DeleteUserRequest $request)
+    {
+        $user = $request->user();
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(DeleteUserResponse::make());
     }
 }

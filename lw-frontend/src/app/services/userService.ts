@@ -26,4 +26,8 @@ export class UserService {
   updateUser(id: string, data: Partial<Pick<User, 'first_name' | 'last_name' | 'username'>>): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, data);
   }
+
+  deleteUser(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/users/${id}`);
+  }
 }

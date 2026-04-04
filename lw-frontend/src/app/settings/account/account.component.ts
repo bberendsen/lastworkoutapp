@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../../services/userService';
+import { AuthService } from '../../services/authService';
 
 @Component({
   selector: 'app-account',
@@ -13,12 +14,16 @@ import { UserService } from '../../services/userService';
 })
 export class AccountComponent implements OnInit {
   private userService = inject(UserService);
+  private auth = inject(AuthService);
   private router = inject(Router);
 
   loading = signal(true);
   saving = signal(false);
   success = signal(false);
   error = signal<string | null>(null);
+  showDeleteModal = signal(false);
+  deleting = signal(false);
+  deleteError = signal<string | null>(null);
   userId = '';
 
   form = new FormGroup({
@@ -64,6 +69,38 @@ export class AccountComponent implements OnInit {
         this.saving.set(false);
         this.error.set(err?.error?.message ?? 'Could not update account.');
       }
+    });
+  }
+
+  openDeleteModal(): void {
+    this.deleteError.set(null);
+    this.showDeleteModal.set(true);
+  }
+
+  closeDeleteModal(): void {
+    if (this.deleting()) {
+      return;
+    }
+    this.showDeleteModal.set(false);
+    this.deleteError.set(null);
+  }
+
+  confirmDeleteAccount(): void {
+    if (!this.userId || this.deleting()) {
+      return;
+    }
+    this.deleting.set(true);
+    this.deleteError.set(null);
+    this.userService.deleteUser(this.userId).subscribe({
+      next: () => {
+        this.auth.clearToken();
+        localStorage.removeItem('userId');
+        void this.router.navigate(['/login']);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.deleting.set(false);
+        this.deleteError.set(err?.error?.message ?? 'Could not delete account.');
+      },
     });
   }
 }
