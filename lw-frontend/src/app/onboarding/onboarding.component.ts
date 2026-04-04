@@ -92,10 +92,9 @@ export class OnboardingComponent {
           localStorage.setItem('userId', loginResponse.user.id);
         }
         
-        // Navigate to goal screen to set weekly goal
         setTimeout(() => {
-          this.router.navigate(['/onboarding/goal'], { 
-            state: { userId: response.id } 
+          this.router.navigate(['/onboarding/health'], {
+            state: { userId: response.id },
           });
         }, 500);
       } else {

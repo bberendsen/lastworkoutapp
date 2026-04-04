@@ -9,13 +9,15 @@ use Illuminate\Support\Facades\DB;
 
 class StreakService
 {
+    /** Workouts per week required to count toward streak and progress UI. */
+    public const DEFAULT_WEEKLY_GOAL = 3;
+
     /**
      * Weekly progress: workouts this week and goal.
      */
     public function getWeeklyProgress(string $userId): array
     {
-        $user = User::find($userId);
-        $goal = (int) ($user?->weekly_goal ?? 3);
+        $goal = self::DEFAULT_WEEKLY_GOAL;
 
         $now = Carbon::now();
         $weekStart = $now->copy()->startOfWeek(Carbon::MONDAY);
@@ -34,16 +36,12 @@ class StreakService
     }
 
     /**
-     * Current streak: consecutive weeks (from current backward) where workouts >= weekly_goal.
+     * Current streak: consecutive weeks (from current backward) where workouts >= DEFAULT_WEEKLY_GOAL.
      * Weeks are ISO (Monday–Sunday).
      */
     public function getCurrentStreak(string $userId): int
     {
-        $user = User::find($userId);
-        $goal = (int) ($user?->weekly_goal ?? 3);
-        if ($goal < 1) {
-            return 0;
-        }
+        $goal = self::DEFAULT_WEEKLY_GOAL;
 
         $countByWeek = $this->getWorkoutCountByWeek($userId);
         if (empty($countByWeek)) {

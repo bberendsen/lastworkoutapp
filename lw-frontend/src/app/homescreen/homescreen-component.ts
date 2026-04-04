@@ -1,12 +1,10 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Workout, WorkoutService } from '../services/workoutService';
-import { UserService } from '../services/userService';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaderboardWithStreak, StreakService } from '../services/streakService';
 import { CelebrationOverlayComponent, CelebrationType } from '../components/celebration-overlay/celebration-overlay.component';
-import { ModalComponent } from '../components/modal/modal.component';
 
 interface TimeSinceLastWorkoutDisplay {
   days: number;
@@ -19,7 +17,7 @@ interface TimeSinceLastWorkoutDisplay {
   standalone: true,
   selector: 'app-homescreen',
   templateUrl: './homescreen-component.html',
-  imports: [RouterModule, CommonModule, FormsModule, CelebrationOverlayComponent, ModalComponent],
+  imports: [RouterModule, CommonModule, FormsModule, CelebrationOverlayComponent],
   styleUrls: ['./homescreen-component.css']
 })
 export class HomescreenComponent implements OnInit, OnDestroy {
@@ -28,8 +26,6 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   currentStreak: WritableSignal<number> = signal(0);
   longestStreak: WritableSignal<number> = signal(0);
   weeklyProgress: WritableSignal<{ workouts_this_week: number; goal: number } | null> = signal(null);
-  showGoalEditor = signal(false);
-  editingGoal = signal(3);
   userId: string = '';
   loading: WritableSignal<boolean> = signal(true);
   error: WritableSignal<string | null> = signal(null);
@@ -62,8 +58,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   
   constructor(
     private workoutService: WorkoutService,
-    private streakService: StreakService,
-    private userService: UserService
+    private streakService: StreakService
   ) {}
   
   ngOnInit(): void {
@@ -207,26 +202,6 @@ export class HomescreenComponent implements OnInit, OnDestroy {
         this.currentStreak.set(0);
         this.longestStreak.set(0);
         this.weeklyProgress.set(null);
-      }
-    });
-  }
-
-  openGoalEditor(): void {
-    const wp = this.weeklyProgress();
-    this.editingGoal.set(wp?.goal ?? 3);
-    this.showGoalEditor.set(true);
-  }
-
-  closeGoalEditor(): void {
-    this.showGoalEditor.set(false);
-  }
-
-  saveGoal(goal: number): void {
-    if (!this.userId) return;
-    this.userService.updateUser(this.userId, { weekly_goal: goal }).subscribe({
-      next: () => {
-        this.loadCurrentStreak();
-        this.closeGoalEditor();
       }
     });
   }

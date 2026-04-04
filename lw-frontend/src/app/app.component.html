@@ -10,7 +10,7 @@
       </a>
     </header>
   }
-  <main class="min-h-screen bg-white" [class.main--with-tab-bar]="showTabBar()">
+  <main class="min-h-screen bg-white w-full min-w-0 max-w-full overflow-x-hidden" [class.main--with-tab-bar]="showTabBar()">
     <router-outlet />
   </main>
   @if (showTabBar()) {

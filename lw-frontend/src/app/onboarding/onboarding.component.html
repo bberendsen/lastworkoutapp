@@ -1,5 +1,5 @@
-<div class="container mx-auto max-w-xl px-4 py-10">
-  <div class="flex flex-col items-center mb-8">
+<div class="container mx-auto max-w-xl w-full min-w-0 px-4 pt-4 pb-8 box-border">
+  <div class="flex flex-col items-center mb-5">
     <div class="mb-2" aria-hidden="true">
       <img src="/images/Logo-LastWorkout-png.png" alt="Last Workout" class="h-9 w-auto object-contain rounded-lg border border-gray-300" />
     </div>
@@ -57,16 +57,16 @@
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">
-        <div class="space-y-2">
+        <div class="space-y-2 min-w-0">
           <label for="birthdate" class="text-sm font-medium text-gray-900">Birthdate</label>
           <input
             type="date"
             formControlName="birthdate"
             id="birthdate"
-            class="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black focus-ring"
+            class="flex h-10 w-full min-w-0 max-w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black focus-ring box-border"
           />
         </div>
-        <div class="space-y-2">
+        <div class="space-y-2 min-w-0">
           <label for="password" class="text-sm font-medium text-gray-900">Password</label>
           <input
             type="password"

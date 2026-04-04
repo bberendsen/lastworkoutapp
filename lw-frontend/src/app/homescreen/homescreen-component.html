@@ -118,14 +118,7 @@
     @if (weeklyProgress(); as wp) {
     <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base font-semibold text-black">Weekly goal</h2>
-        <button
-          type="button"
-          (click)="openGoalEditor()"
-          class="text-xs font-medium text-gray-600 hover:text-black"
-        >
-          Change
-        </button>
+        <h2 class="text-base font-semibold text-black">This week</h2>
       </div>
       <div class="flex items-center gap-3">
         <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -280,37 +273,6 @@
     }
   </div>
 </div>
-
-@if (showGoalEditor()) {
-<app-modal title="Weekly goal" [show]="true" (closed)="closeGoalEditor()">
-  <div class="flex flex-wrap justify-center gap-2 mb-4">
-    @for (g of [1,2,3,4,5,6,7]; track g) {
-    <button
-      type="button"
-      (click)="editingGoal.set(g)"
-      class="w-12 h-12 rounded-lg font-semibold text-sm transition-colors"
-      [class.bg-slate-900]="editingGoal() === g"
-      [class.text-white]="editingGoal() === g"
-      [class.bg-gray-100]="editingGoal() !== g"
-      [class.text-gray-700]="editingGoal() !== g"
-    >
-      {{ g }}
-    </button>
-    }
-  </div>
-  <p class="text-sm text-gray-600 text-center mb-4">
-    {{ editingGoal() }} {{ editingGoal() === 1 ? 'workout' : 'workouts' }} per
-    week
-  </p>
-  <button
-    type="button"
-    (click)="saveGoal(editingGoal())"
-    class="btn-primary w-full h-10 text-sm"
-  >
-    Save
-  </button>
-</app-modal>
-}
 
 <app-celebration-overlay
   [show]="workoutLoggedSuccessfully()"

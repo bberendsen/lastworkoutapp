@@ -16,7 +16,7 @@ import { App } from '@capacitor/app';
 export class AppComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private healthService = inject(HealthService);
-  private hideLogoutRoutes = ['/login', '/onboarding', '/onboarding/goal', '/onboarding/health'];
+  private hideLogoutRoutes = ['/login', '/onboarding', '/onboarding/health'];
   private tabBarRoutes = ['/homescreen', '/leaderboard', '/statistics', '/settings'];
   showLogout = signal(true);
   showTabBar = signal(false);

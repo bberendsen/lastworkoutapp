@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, OnDestroy, signal, WritableSignal, computed, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Workout, WorkoutService } from '../services/workoutService';
 import { StreakService } from '../services/streakService';
@@ -8,6 +7,8 @@ import { Chart, ChartConfiguration, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 const PAGE_SIZE = 10;
+/** Must match backend StreakService::DEFAULT_WEEKLY_GOAL */
+const WEEKLY_WORKOUT_GOAL = 3;
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function getMonday(d: Date): Date {
@@ -22,13 +23,16 @@ function getMonday(d: Date): Date {
 @Component({
   selector: 'app-statistics',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [CommonModule],
   templateUrl: './statistics.component.html',
   styleUrl: './statistics.component.css'
 })
 export class StatisticsComponent implements OnInit, OnDestroy, AfterViewChecked {
   private workoutService = inject(WorkoutService);
   private streakService = inject(StreakService);
+
+  /** Matches backend default weekly workout target */
+  readonly weeklyWorkoutGoal = WEEKLY_WORKOUT_GOAL;
 
   @ViewChild('weeklyChart') weeklyChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('streakChart') streakChartRef!: ElementRef<HTMLCanvasElement>;
@@ -38,7 +42,6 @@ export class StatisticsComponent implements OnInit, OnDestroy, AfterViewChecked 
   loading = signal(true);
   currentStreak = signal(0);
   longestStreak = signal(0);
-  weeklyGoal = signal(3);
   logWorkoutFailed = signal(false);
   currentPage = signal(1);
   private weeklyChart: Chart | null = null;
@@ -71,7 +74,7 @@ export class StatisticsComponent implements OnInit, OnDestroy, AfterViewChecked 
   workoutsThisWeek = computed(() => this.weeklyChartData().reduce((a, b) => a + b, 0));
   /** Progress 0–1 (capped at 1 for display) */
   weeklyProgressPercent = computed(() => {
-    const goal = this.weeklyGoal();
+    const goal = WEEKLY_WORKOUT_GOAL;
     if (goal <= 0) return 0;
     return Math.min(1, this.workoutsThisWeek() / goal);
   });
@@ -95,7 +98,7 @@ export class StatisticsComponent implements OnInit, OnDestroy, AfterViewChecked 
   /** Last 8 weeks: { label, count, goalMet } */
   streakChartData = computed(() => {
     const list = this.workouts();
-    const goal = this.weeklyGoal();
+    const goal = WEEKLY_WORKOUT_GOAL;
     const today = new Date();
     const weeks: { label: string; count: number; goalMet: boolean }[] = [];
     for (let i = 7; i >= 0; i--) {
@@ -144,9 +147,6 @@ export class StatisticsComponent implements OnInit, OnDestroy, AfterViewChecked 
       next: (res) => {
         this.currentStreak.set(res.current_streak);
         this.longestStreak.set(res.longest_streak ?? 0);
-        if (res.weekly_progress) {
-          this.weeklyGoal.set(res.weekly_progress.goal);
-        }
       }
     });
   }
@@ -186,7 +186,7 @@ export class StatisticsComponent implements OnInit, OnDestroy, AfterViewChecked 
   private initCharts(): void {
     if (!this.weeklyChartRef?.nativeElement || !this.streakChartRef?.nativeElement) return;
 
-    const goal = this.weeklyGoal();
+    const goal = WEEKLY_WORKOUT_GOAL;
     const wp = this.weeklyChartData();
     const sp = this.streakChartData();
 

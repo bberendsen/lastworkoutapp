@@ -75,7 +75,7 @@ The HealthKit integration has been implemented! Here's what was done and what yo
 
 ## 📋 How It Works
 
-1. **Onboarding (new users)**: After setting their weekly goal, users see a **Connect Apple Health** screen. On iPhone they can tap **Allow access** to open the system Health permission dialog, then **Continue** or **Skip for now**.
+1. **Onboarding (new users)**: After sign-up, users see a **Connect Apple Health** screen. On iPhone they can tap **Allow access** to open the system Health permission dialog, then **Continue** or **Skip for now**.
 2. **First sync**: If they allow access, the app immediately syncs workouts from the last 7 days.
 3. **When app opens/returns to foreground**: If HealthKit is available and was authorized, the app syncs new workouts since last sync.
 4. **Deduplication**: The backend allows only one workout per calendar day per user; duplicate dates are skipped.

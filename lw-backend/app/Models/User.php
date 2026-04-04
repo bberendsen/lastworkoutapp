@@ -25,7 +25,6 @@ class User extends Authenticatable
         'password',
         'has_subscription',
         'longest_streak',
-        'weekly_goal',
     ];
 
     protected $hidden = [

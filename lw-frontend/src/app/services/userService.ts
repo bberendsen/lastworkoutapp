@@ -10,7 +10,6 @@ export interface User {
   birthdate?: string;
   email?: string;
   has_subscription?: boolean;
-  weekly_goal?: number;
 }
 
 @Injectable({
@@ -24,7 +23,7 @@ export class UserService {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`);
   }
 
-  updateUser(id: string, data: Partial<Pick<User, 'first_name' | 'last_name' | 'username' | 'weekly_goal'>>): Observable<User> {
+  updateUser(id: string, data: Partial<Pick<User, 'first_name' | 'last_name' | 'username'>>): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/users/${id}`, data);
   }
 }

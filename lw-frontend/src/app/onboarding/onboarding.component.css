@@ -1,0 +1,5 @@
+/* Keep date input within form (native date picker can force min-width) */
+:host input[type="date"] {
+  min-width: 0;
+  width: 100%;
+}

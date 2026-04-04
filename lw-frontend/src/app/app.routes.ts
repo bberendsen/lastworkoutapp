@@ -5,7 +5,6 @@ import { StatisticsComponent } from './statistics/statistics.component';
 import { SettingsComponent } from './settings/settings.component';
 import { AccountComponent } from './settings/account/account.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
-import { OnboardingGoalComponent } from './onboarding/onboarding-goal/onboarding-goal.component';
 import { OnboardingHealthComponent } from './onboarding/onboarding-health/onboarding-health.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuard } from './auth/auth.guard';
@@ -54,12 +53,6 @@ export const routes: Routes = [
   {
     path: 'onboarding',
     component: OnboardingComponent,
-    pathMatch: 'full'
-  },
-  {
-    path: 'onboarding/goal',
-    component: OnboardingGoalComponent,
-    canActivate: [authGuard],
     pathMatch: 'full'
   },
   {
