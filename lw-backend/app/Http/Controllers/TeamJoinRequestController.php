@@ -40,7 +40,7 @@ class TeamJoinRequestController extends Controller
 
         DB::transaction(function () use ($team, $joinRequest, $user): void {
             if (! $team->users()->where('users.id', $user->id)->exists()) {
-                $team->users()->attach($user->id);
+                $team->users()->attach($user->id, ['participates_in_challenges' => true]);
             }
             $joinRequest->delete();
         });

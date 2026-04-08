@@ -3,6 +3,7 @@
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StreakController;
+use App\Http\Controllers\TeamChallengeController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamJoinRequestController;
 use App\Http\Controllers\TeamStatisticsController;
@@ -40,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/teams', [TeamController::class, 'store']);
     Route::get('/teams/{team}', [TeamController::class, 'show']);
     Route::get('/teams/{team}/statistics', [TeamStatisticsController::class, 'show']);
+    Route::get('/teams/{team}/challenges', [TeamChallengeController::class, 'show']);
     Route::put('/teams/{team}', [TeamController::class, 'update']);
     Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
     Route::post('/teams/{team}/join', [TeamController::class, 'join']);

@@ -95,7 +95,7 @@ class TeamController extends Controller
             'created_by' => $user->id,
         ]);
 
-        $team->users()->attach($user->id);
+        $team->users()->attach($user->id, ['participates_in_challenges' => true]);
 
         $team->loadCount('users');
 

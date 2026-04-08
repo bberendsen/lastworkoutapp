@@ -186,6 +186,19 @@
         >
           Statistics
         </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'challenges'"
+          (click)="setTab('challenges')"
+          class="rounded-md px-3 py-2 text-sm font-medium transition-colors min-w-0"
+          [class.bg-white]="activeTab() === 'challenges'"
+          [class.text-black]="activeTab() === 'challenges'"
+          [class.shadow-sm]="activeTab() === 'challenges'"
+          [class.text-gray-600]="activeTab() !== 'challenges'"
+        >
+          Challenges
+        </button>
         @if (t.is_creator) {
           <button
             type="button"
@@ -285,6 +298,47 @@
                       }
                     </tbody>
                   </table>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+
+      @if (activeTab() === 'challenges') {
+        <div class="space-y-4">
+          @if (challengesLoading()) {
+            <p class="text-sm text-gray-500 py-6">Loading challenges…</p>
+          } @else if (challengesError()) {
+            <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ challengesError() }}</p>
+            <button type="button" (click)="loadTeamChallenges()" class="mt-2 text-sm font-medium text-black underline">Try again</button>
+          } @else {
+            @if (challengesPayload(); as cp) {
+              <p class="text-xs text-gray-500 -mt-1 mb-2">Team workouts count toward these challenges. XP will be added later.</p>
+
+              <div class="space-y-3">
+                @for (c of cp.challenges; track c.id) {
+                  <div
+                    class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                    [class.ring-1]="c.completed"
+                    [class.ring-emerald-200]="c.completed"
+                    [class.bg-emerald-50]="c.completed"
+                  >
+                    <div class="flex items-start justify-between gap-3 mb-2">
+                      <h3 class="text-sm font-semibold text-black leading-snug">{{ c.title }}</h3>
+                      @if (c.completed) {
+                        <span class="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">Done</span>
+                      }
+                    </div>
+                    <p class="text-xs text-gray-600 leading-relaxed">{{ c.description }}</p>
+                    <div class="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        class="h-full rounded-full bg-emerald-500 transition-[width] duration-300 ease-out"
+                        [style.width.%]="100 * c.progress"
+                      ></div>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2 tabular-nums">{{ c.status_label }}</p>
+                  </div>
                 }
               </div>
             }

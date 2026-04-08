@@ -2,10 +2,16 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TeamService } from '../services/team.service';
-import type { TeamDetail, TeamJoinRequestItem, TeamLeaderboardRow, TeamStatistics } from './team.models';
+import type {
+  TeamChallengesPayload,
+  TeamDetail,
+  TeamJoinRequestItem,
+  TeamLeaderboardRow,
+  TeamStatistics,
+} from './team.models';
 import { teamPresetLinearGradient } from './team.models';
 
-type TeamTab = 'members' | 'statistics' | 'requests';
+type TeamTab = 'members' | 'statistics' | 'challenges' | 'requests';
 
 @Component({
   selector: 'app-team-detail',
@@ -39,6 +45,10 @@ export class TeamDetailComponent implements OnInit {
   /** Global team leaderboard (by total workouts); used for rank + peek. */
   teamLeaderboardRows = signal<TeamLeaderboardRow[]>([]);
   teamLeaderboardLoading = signal(false);
+
+  challengesPayload = signal<TeamChallengesPayload | null>(null);
+  challengesLoading = signal(false);
+  challengesError = signal<string | null>(null);
 
   readonly presetGradient = teamPresetLinearGradient;
 
@@ -95,6 +105,7 @@ export class TeamDetailComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.teamLeaderboardRows.set([]);
+    this.challengesPayload.set(null);
     this.teamService.getTeam(id).subscribe({
       next: (t) => {
         this.team.set(t);
@@ -106,6 +117,9 @@ export class TeamDetailComponent implements OnInit {
         }
         if (this.activeTab() === 'statistics') {
           this.loadTeamStatistics();
+        }
+        if (this.activeTab() === 'challenges') {
+          this.loadTeamChallenges();
         }
       },
       error: () => {
@@ -124,6 +138,9 @@ export class TeamDetailComponent implements OnInit {
     if (tab === 'statistics') {
       this.loadTeamStatistics();
     }
+    if (tab === 'challenges') {
+      this.loadTeamChallenges();
+    }
   }
 
   loadTeamLeaderboard(): void {
@@ -136,6 +153,23 @@ export class TeamDetailComponent implements OnInit {
       error: () => {
         this.teamLeaderboardRows.set([]);
         this.teamLeaderboardLoading.set(false);
+      },
+    });
+  }
+
+  loadTeamChallenges(): void {
+    const t = this.team();
+    if (!t) return;
+    this.challengesLoading.set(true);
+    this.challengesError.set(null);
+    this.teamService.getTeamChallenges(t.id).subscribe({
+      next: (payload) => {
+        this.challengesPayload.set(payload);
+        this.challengesLoading.set(false);
+      },
+      error: () => {
+        this.challengesError.set('Could not load challenges.');
+        this.challengesLoading.set(false);
       },
     });
   }
@@ -203,6 +237,10 @@ export class TeamDetailComponent implements OnInit {
         if (this.activeTab() === 'statistics') {
           this.loadTeamStatistics();
         }
+        if (this.activeTab() === 'challenges') {
+          this.loadTeamChallenges();
+        }
+        this.loadTeamLeaderboard();
         this.joinRequests.update((list) => list.filter((r) => r.id !== req.id));
         this.processingRequestId.set(null);
       },

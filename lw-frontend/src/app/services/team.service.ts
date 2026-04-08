@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import type {
   TeamDetail,
   TeamGradientPreset,
+  TeamChallengesPayload,
   TeamJoinRequestItem,
   TeamLeaderboardRow,
   TeamStatistics,
@@ -37,6 +38,10 @@ export class TeamService {
 
   getTeamStatistics(teamId: string): Observable<TeamStatistics> {
     return this.http.get<TeamStatistics>(`${this.apiUrl}/teams/${teamId}/statistics`);
+  }
+
+  getTeamChallenges(teamId: string): Observable<TeamChallengesPayload> {
+    return this.http.get<TeamChallengesPayload>(`${this.apiUrl}/teams/${teamId}/challenges`);
   }
 
   createTeam(data: {

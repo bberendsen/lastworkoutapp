@@ -54,6 +54,21 @@ export interface TeamLeaderboardRow {
   total_workouts: number;
 }
 
+export interface TeamChallengeItem {
+  id: string;
+  title: string;
+  description: string;
+  /** 0–1 progress toward the goal */
+  progress: number;
+  status_label: string;
+  completed: boolean;
+  xp_reward: number | null;
+}
+
+export interface TeamChallengesPayload {
+  challenges: TeamChallengeItem[];
+}
+
 export interface TeamStatistics {
   total_workouts: number;
   workouts_this_week: number;

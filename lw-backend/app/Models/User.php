@@ -50,7 +50,9 @@ class User extends Authenticatable
 
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class, 'team_user')->withTimestamps();
+        return $this->belongsToMany(Team::class, 'team_user')
+            ->withPivot('participates_in_challenges')
+            ->withTimestamps();
     }
 
     protected static function booted()
