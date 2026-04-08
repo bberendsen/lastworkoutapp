@@ -41,6 +41,31 @@ export interface TeamMember {
   username: string;
   first_name: string;
   last_name: string;
+  /** Workouts logged while attributed to this team. */
+  team_workouts_count: number;
+}
+
+/** Row for global team leaderboard (total workouts for the team). */
+export interface TeamLeaderboardRow {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  gradient_preset: TeamGradientPreset;
+  total_workouts: number;
+}
+
+export interface TeamStatistics {
+  total_workouts: number;
+  workouts_this_week: number;
+  week_starts_at: string;
+  week_ends_at: string;
+  weekly_ranking: {
+    user_id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    workouts_this_week: number;
+  }[];
 }
 
 export interface TeamDetail extends TeamSummary {

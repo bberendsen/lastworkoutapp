@@ -54,4 +54,22 @@ class Team extends Model
     {
         return $this->hasMany(TeamJoinRequest::class);
     }
+
+    public function workouts(): HasMany
+    {
+        return $this->hasMany(Workout::class);
+    }
+
+    /** Eager-load members with per-user workout counts attributed to this team. */
+    public function loadMembersForDetail(): void
+    {
+        $teamId = $this->id;
+        $this->load([
+            'users' => fn ($q) => $q
+                ->orderBy('username')
+                ->withCount([
+                    'workouts as team_workouts_count' => fn ($q2) => $q2->where('team_id', $teamId),
+                ]),
+        ]);
+    }
 }

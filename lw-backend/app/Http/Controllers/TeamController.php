@@ -10,11 +10,34 @@ use App\Http\Responses\TeamDetailResponse;
 use App\Http\Responses\TeamSummaryResponse;
 use App\Models\Team;
 use App\Support\StoresTeamLogos;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TeamController extends Controller
 {
     use StoresTeamLogos;
+
+    /**
+     * Teams ranked by total workouts attributed to the team (workouts.team_id).
+     */
+    public function leaderboard(): JsonResponse
+    {
+        $teams = Team::query()
+            ->withCount(['workouts as total_workouts'])
+            ->orderByDesc('total_workouts')
+            ->orderBy('name')
+            ->get();
+
+        $payload = $teams->map(fn (Team $t): array => [
+            'id' => $t->id,
+            'name' => $t->name,
+            'logo_url' => $t->logo_url,
+            'gradient_preset' => $t->gradient_preset,
+            'total_workouts' => (int) $t->total_workouts,
+        ])->values()->all();
+
+        return response()->json(['teams' => $payload]);
+    }
 
     public function index(Request $request)
     {
@@ -45,7 +68,7 @@ class TeamController extends Controller
 
     public function show(Request $request, Team $team)
     {
-        $team->load(['users' => fn ($q) => $q->orderBy('username')]);
+        $team->loadMembersForDetail();
 
         $viewer = $request->user();
         if ($viewer && (string) $team->created_by === (string) $viewer->id) {
@@ -139,7 +162,7 @@ class TeamController extends Controller
             'user_id' => $user->id,
         ]);
 
-        $team->load(['users' => fn ($q) => $q->orderBy('username')]);
+        $team->loadMembersForDetail();
 
         return response()->json(TeamDetailResponse::from($team, $user));
     }

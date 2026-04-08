@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Workout;
 use App\Services\StreakService;
 use Carbon\Carbon;
@@ -12,8 +13,7 @@ class WorkoutController extends Controller
 {
     public function __construct(
         private StreakService $streakService
-    ) {
-    }
+    ) {}
 
     public function store(Request $request)
     {
@@ -24,7 +24,7 @@ class WorkoutController extends Controller
         ]);
 
         $source = $validated['source'] ?? 'manual';
-        $workoutDatetime = isset($validated['workout_datetime']) 
+        $workoutDatetime = isset($validated['workout_datetime'])
             ? Carbon::parse($validated['workout_datetime'])
             : Carbon::now();
 
@@ -39,8 +39,11 @@ class WorkoutController extends Controller
             ], 422);
         }
 
+        $teamId = User::find($validated['user_id'])?->teams()->first()?->id;
+
         $workout = Workout::create([
             'user_id' => $validated['user_id'],
+            'team_id' => $teamId,
             'workout_datetime' => $workoutDatetime,
             'source' => $source,
         ]);

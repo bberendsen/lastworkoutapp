@@ -27,132 +27,268 @@
     }
   </div>
 
-  @if (team(); as t) {
-    @if (t.is_creator) {
-      <div class="flex gap-1 p-1 rounded-lg bg-gray-100 mb-6" role="tablist" aria-label="Team sections">
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeTab() === 'details'"
-          (click)="setTab('details')"
-          class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors"
-          [class.bg-white]="activeTab() === 'details'"
-          [class.text-black]="activeTab() === 'details'"
-          [class.shadow-sm]="activeTab() === 'details'"
-          [class.text-gray-600]="activeTab() !== 'details'"
-        >
-          Details
-        </button>
-        <button
-          type="button"
-          role="tab"
-          [attr.aria-selected]="activeTab() === 'requests'"
-          (click)="setTab('requests')"
-          class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors"
-          [class.bg-white]="activeTab() === 'requests'"
-          [class.text-black]="activeTab() === 'requests'"
-          [class.shadow-sm]="activeTab() === 'requests'"
-          [class.text-gray-600]="activeTab() !== 'requests'"
-        >
-          Requests
-          @if ((t.pending_join_requests_count ?? 0) > 0) {
-            <span class="ml-1.5 inline-flex min-w-[1.25rem] justify-center rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-              {{ t.pending_join_requests_count }}
-            </span>
-          }
-        </button>
-      </div>
-    }
-  }
-
   @if (loading()) {
     <p class="text-sm text-gray-500 py-6">Loading…</p>
   } @else if (error()) {
     <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ error() }}</p>
   } @else {
     @if (team(); as t) {
-      @if (!t.is_creator || activeTab() === 'details') {
-        <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm mb-6">
-          <div class="flex gap-4 items-start">
-            @if (t.logo_url) {
-              <img [src]="t.logo_url" alt="" class="h-16 w-16 rounded-xl object-cover border border-gray-200 shrink-0" />
-            } @else {
-              <div
-                class="h-16 w-16 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-xl font-semibold text-gray-600 shrink-0"
-                aria-hidden="true"
-              >
-                {{ t.name.charAt(0).toUpperCase() }}
-              </div>
-            }
-            <div class="min-w-0 flex-1 pt-1">
-              <div class="flex items-center gap-2 mb-2">
-                <span
-                  class="inline-block rounded-full shrink-0 ring-1 ring-black/10"
-                  [style.width.px]="10"
-                  [style.height.px]="10"
-                  [style.background]="presetGradient(t.gradient_preset)"
-                  aria-hidden="true"
-                ></span>
-                <p class="text-sm text-gray-600">
-                  {{ t.members_count }} {{ t.members_count === 1 ? 'member' : 'members' }}
-                </p>
-              </div>
+      <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm mb-6">
+        <div class="flex gap-4 items-start">
+          @if (t.logo_url) {
+            <img [src]="t.logo_url" alt="" class="h-16 w-16 rounded-xl object-cover border border-gray-200 shrink-0" />
+          } @else {
+            <div
+              class="h-16 w-16 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-xl font-semibold text-gray-600 shrink-0"
+              aria-hidden="true"
+            >
+              {{ t.name.charAt(0).toUpperCase() }}
             </div>
-          </div>
-
-          @if (actionError()) {
-            <p class="mt-4 text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ actionError() }}</p>
           }
-
-          <div class="mt-6 flex flex-col sm:flex-row gap-2">
-            @if (!t.is_member) {
-              @if (t.already_in_another_team) {
-                <p class="flex-1 text-sm text-gray-600 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-                  You’re already in a team. Leave that team first if you want to join this one.
-                </p>
-              } @else if (t.has_pending_request) {
-                <button type="button" disabled class="flex-1 h-10 text-sm rounded-lg border border-gray-200 bg-gray-50 font-medium text-gray-500 cursor-not-allowed">
-                  Request pending
-                </button>
-              } @else {
-                <button type="button" (click)="requestToJoin()" [disabled]="busy()" class="btn-primary flex-1 h-10 text-sm">
-                  {{ busy() ? '…' : 'Request to join' }}
-                </button>
-              }
+          <div class="min-w-0 flex-1 pt-1">
+            <div class="flex items-center gap-2 mb-2">
+              <span
+                class="inline-block rounded-full shrink-0 ring-1 ring-black/10"
+                [style.width.px]="10"
+                [style.height.px]="10"
+                [style.background]="presetGradient(t.gradient_preset)"
+                aria-hidden="true"
+              ></span>
+              <p class="text-sm text-gray-600">
+                {{ t.members_count }} {{ t.members_count === 1 ? 'member' : 'members' }}
+              </p>
+            </div>
+            @if (teamLeaderboardLoading()) {
+              <p class="text-xs text-gray-400 mt-1.5">Leaderboard rank…</p>
             } @else {
-              <button
-                type="button"
-                (click)="leave()"
-                [disabled]="busy()"
-                class="flex-1 h-10 text-sm rounded-lg border border-gray-300 bg-white font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50"
-              >
-                {{ busy() ? '…' : 'Leave team' }}
-              </button>
-            }
-            @if (t.is_creator && t.members_count === 0) {
-              <button
-                type="button"
-                (click)="openDeleteModal()"
-                class="flex-1 h-10 text-sm rounded-lg border border-red-200 bg-red-50 font-medium text-red-800 hover:bg-red-100"
-              >
-                Delete team
-              </button>
+              @if (leaderboardRankInfo(); as li) {
+                <p class="text-xs text-gray-600 mt-1.5">
+                  Team rank <span class="font-semibold text-black">#{{ li.rank }}</span>
+                  <span class="text-gray-500">of {{ li.total }} teams</span>
+                </p>
+              }
             }
           </div>
         </div>
 
-        <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
-          <h2 class="text-sm font-semibold text-black px-4 py-3 border-b border-gray-100">Members</h2>
-          <ul class="divide-y divide-gray-100">
-            @for (m of t.members; track m.id) {
-              <li class="px-4 py-3 flex items-center justify-between gap-2">
-                <a [routerLink]="['/users', m.id]" class="min-w-0 flex-1 text-left rounded-lg -m-1 p-1 hover:bg-gray-50 transition-colors focus-ring">
-                  <p class="text-sm font-medium text-black truncate">{{ m.first_name }} {{ m.last_name }}</p>
-                  <p class="text-xs text-gray-500 truncate">{{ '@' + m.username }}</p>
+        @if (actionError()) {
+          <p class="mt-4 text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ actionError() }}</p>
+        }
+
+        <div class="mt-6 flex flex-col sm:flex-row gap-2">
+          @if (!t.is_member) {
+            @if (t.already_in_another_team) {
+              <p class="flex-1 text-sm text-gray-600 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                You’re already in a team. Leave that team first if you want to join this one.
+              </p>
+            } @else if (t.has_pending_request) {
+              <button type="button" disabled class="flex-1 h-10 text-sm rounded-lg border border-gray-200 bg-gray-50 font-medium text-gray-500 cursor-not-allowed">
+                Request pending
+              </button>
+            } @else {
+              <button type="button" (click)="requestToJoin()" [disabled]="busy()" class="btn-primary flex-1 h-10 text-sm">
+                {{ busy() ? '…' : 'Request to join' }}
+              </button>
+            }
+          } @else {
+            <button
+              type="button"
+              (click)="leave()"
+              [disabled]="busy()"
+              class="flex-1 h-10 text-sm rounded-lg border border-gray-300 bg-white font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {{ busy() ? '…' : 'Leave team' }}
+            </button>
+          }
+          @if (t.is_creator && t.members_count === 0) {
+            <button
+              type="button"
+              (click)="openDeleteModal()"
+              class="flex-1 h-10 text-sm rounded-lg border border-red-200 bg-red-50 font-medium text-red-800 hover:bg-red-100"
+            >
+              Delete team
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (!teamLeaderboardLoading() && leaderboardPeek().length > 0) {
+        <div class="rounded-lg border border-gray-200 bg-white shadow-sm mb-6 overflow-hidden">
+          <div class="px-3 py-2 border-b border-gray-100 flex items-center justify-between gap-2 bg-gray-50/90">
+            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Team leaderboard</p>
+            <a routerLink="/leaderboard" [queryParams]="{ tab: 'teams' }" class="text-xs font-medium text-gray-600 hover:text-black shrink-0">View all</a>
+          </div>
+          <ul class="divide-y divide-gray-100" role="list">
+            @for (entry of leaderboardPeek(); track entry.team.id) {
+              <li>
+                <a
+                  [routerLink]="['/teams', entry.team.id]"
+                  class="flex items-center gap-2.5 py-2 px-3 min-w-0 transition-colors"
+                  [class.bg-amber-50]="entry.isCurrent"
+                  [class.ring-1]="entry.isCurrent"
+                  [class.ring-inset]="entry.isCurrent"
+                  [class.ring-amber-200]="entry.isCurrent"
+                  [attr.aria-current]="entry.isCurrent ? 'true' : null"
+                >
+                  <span class="w-6 shrink-0 text-xs font-medium text-gray-400 tabular-nums text-right">{{ entry.rank }}</span>
+                  <span
+                    class="inline-block shrink-0 rounded-full ring-1 ring-black/10"
+                    [style.width.px]="8"
+                    [style.height.px]="8"
+                    [style.background]="presetGradient(entry.team.gradient_preset)"
+                    aria-hidden="true"
+                  ></span>
+                  @if (entry.team.logo_url) {
+                    <img [src]="entry.team.logo_url" alt="" class="h-7 w-7 rounded-md object-cover border border-gray-200 shrink-0" />
+                  } @else {
+                    <div
+                      class="h-7 w-7 rounded-md border border-gray-200 bg-gray-50 flex items-center justify-center text-[10px] font-semibold text-gray-600 shrink-0"
+                      aria-hidden="true"
+                    >
+                      {{ entry.team.name.charAt(0).toUpperCase() }}
+                    </div>
+                  }
+                  <span class="min-w-0 flex-1 truncate text-sm" [class.font-semibold]="entry.isCurrent" [class.text-black]="entry.isCurrent" [class.text-gray-800]="!entry.isCurrent">
+                    {{ entry.team.name }}
+                  </span>
+                  <span class="text-xs text-gray-500 shrink-0 tabular-nums">{{ entry.team.total_workouts }}</span>
                 </a>
               </li>
             }
           </ul>
+        </div>
+      }
+
+      <div class="flex flex-wrap gap-1 p-1 rounded-lg bg-gray-100 mb-6" role="tablist" aria-label="Team list and statistics">
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'members'"
+          (click)="setTab('members')"
+          class="rounded-md px-3 py-2 text-sm font-medium transition-colors min-w-0"
+          [class.bg-white]="activeTab() === 'members'"
+          [class.text-black]="activeTab() === 'members'"
+          [class.shadow-sm]="activeTab() === 'members'"
+          [class.text-gray-600]="activeTab() !== 'members'"
+        >
+          Members
+        </button>
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'statistics'"
+          (click)="setTab('statistics')"
+          class="rounded-md px-3 py-2 text-sm font-medium transition-colors min-w-0"
+          [class.bg-white]="activeTab() === 'statistics'"
+          [class.text-black]="activeTab() === 'statistics'"
+          [class.shadow-sm]="activeTab() === 'statistics'"
+          [class.text-gray-600]="activeTab() !== 'statistics'"
+        >
+          Statistics
+        </button>
+        @if (t.is_creator) {
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="activeTab() === 'requests'"
+            (click)="setTab('requests')"
+            class="rounded-md px-3 py-2 text-sm font-medium transition-colors min-w-0"
+            [class.bg-white]="activeTab() === 'requests'"
+            [class.text-black]="activeTab() === 'requests'"
+            [class.shadow-sm]="activeTab() === 'requests'"
+            [class.text-gray-600]="activeTab() !== 'requests'"
+          >
+            Requests
+            @if ((t.pending_join_requests_count ?? 0) > 0) {
+              <span class="ml-1.5 inline-flex min-w-[1.25rem] justify-center rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                {{ t.pending_join_requests_count }}
+              </span>
+            }
+          </button>
+        }
+      </div>
+
+      @if (activeTab() === 'members') {
+        <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <h2 class="text-sm font-semibold text-black">Members</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Workouts logged for this team</p>
+          </div>
+          <ul class="divide-y divide-gray-100">
+            @for (m of t.members; track m.id) {
+              <li class="px-4 py-3 flex items-center justify-between gap-3">
+                <a [routerLink]="['/users', m.id]" class="min-w-0 flex-1 text-left rounded-lg -m-1 p-1 hover:bg-gray-50 transition-colors focus-ring">
+                  <p class="text-sm font-medium text-black truncate">{{ m.first_name }} {{ m.last_name }}</p>
+                  <p class="text-xs text-gray-500 truncate">{{ '@' + m.username }}</p>
+                </a>
+                <span class="shrink-0 text-sm font-medium text-gray-700 tabular-nums">
+                  {{ m.team_workouts_count }}
+                  <span class="text-gray-500 font-normal">{{ m.team_workouts_count === 1 ? 'workout' : 'workouts' }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (activeTab() === 'statistics') {
+        <div class="space-y-4">
+          @if (teamStatsLoading()) {
+            <p class="text-sm text-gray-500 py-6">Loading statistics…</p>
+          } @else if (teamStatsError()) {
+            <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ teamStatsError() }}</p>
+            <button type="button" (click)="loadTeamStatistics()" class="mt-2 text-sm font-medium text-black underline">Try again</button>
+          } @else {
+            @if (teamStats(); as s) {
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total workouts</p>
+                  <p class="mt-1 text-2xl font-semibold text-black tabular-nums">{{ s.total_workouts }}</p>
+                </div>
+                <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">This week</p>
+                  <p class="mt-1 text-2xl font-semibold text-black tabular-nums">{{ s.workouts_this_week }}</p>
+                  <p class="mt-1 text-xs text-gray-500">
+                    {{ s.week_starts_at | date: 'mediumDate' }} – {{ s.week_ends_at | date: 'mediumDate' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+                <div class="px-4 py-3 border-b border-gray-100">
+                  <h2 class="text-sm font-semibold text-black">This week · by member</h2>
+                  <p class="text-xs text-gray-500 mt-0.5">Highest first</p>
+                </div>
+                @if (s.weekly_ranking.length === 0) {
+                  <p class="text-sm text-gray-500 px-4 py-8 text-center">No workouts logged this week yet.</p>
+                } @else {
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="border-b border-gray-100 bg-gray-50 text-left text-xs font-medium text-gray-500">
+                        <th class="py-2 px-4 w-10">#</th>
+                        <th class="py-2 px-2">Member</th>
+                        <th class="py-2 px-4 text-right">Workouts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (row of s.weekly_ranking; track row.user_id; let i = $index) {
+                        <tr class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/80">
+                          <td class="py-2.5 px-4 text-gray-400 tabular-nums">{{ i + 1 }}</td>
+                          <td class="py-2.5 px-2">
+                            <a [routerLink]="['/users', row.user_id]" class="font-medium text-black hover:underline">
+                              {{ row.first_name }} {{ row.last_name }}
+                            </a>
+                            <span class="block text-xs text-gray-500">{{ '@' + row.username }}</span>
+                          </td>
+                          <td class="py-2.5 px-4 text-right font-semibold text-black tabular-nums">{{ row.workouts_this_week }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                }
+              </div>
+            }
+          }
         </div>
       }
 

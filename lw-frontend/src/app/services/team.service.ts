@@ -2,7 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import type { TeamDetail, TeamGradientPreset, TeamJoinRequestItem, TeamSummary } from '../teams/team.models';
+import type {
+  TeamDetail,
+  TeamGradientPreset,
+  TeamJoinRequestItem,
+  TeamLeaderboardRow,
+  TeamStatistics,
+  TeamSummary,
+} from '../teams/team.models';
 
 @Injectable({
   providedIn: 'root',
@@ -17,8 +24,19 @@ export class TeamService {
     );
   }
 
+  /** Teams ordered by total workouts (workouts linked to the team). */
+  getTeamsLeaderboard(): Observable<TeamLeaderboardRow[]> {
+    return this.http.get<{ teams?: TeamLeaderboardRow[] }>(`${this.apiUrl}/teams/leaderboard`).pipe(
+      map((r) => (Array.isArray(r.teams) ? r.teams : []))
+    );
+  }
+
   getTeam(id: string): Observable<TeamDetail> {
     return this.http.get<TeamDetail>(`${this.apiUrl}/teams/${id}`);
+  }
+
+  getTeamStatistics(teamId: string): Observable<TeamStatistics> {
+    return this.http.get<TeamStatistics>(`${this.apiUrl}/teams/${teamId}/statistics`);
   }
 
   createTeam(data: {

@@ -45,7 +45,7 @@ class TeamJoinRequestController extends Controller
             $joinRequest->delete();
         });
 
-        $team->load(['users' => fn ($q) => $q->orderBy('username')]);
+        $team->loadMembersForDetail();
         $team->loadCount('users');
 
         return response()->json(TeamDetailResponse::from($team, $request->user()));

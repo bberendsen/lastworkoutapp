@@ -11,6 +11,7 @@ class Workout extends Model
 
     protected $fillable = [
         'user_id',
+        'team_id',
         'workout_datetime',
         'source',
     ];
@@ -22,5 +23,10 @@ class Workout extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
     }
 }

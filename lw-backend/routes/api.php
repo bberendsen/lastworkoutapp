@@ -5,6 +5,7 @@ use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StreakController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamJoinRequestController;
+use App\Http\Controllers\TeamStatisticsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkoutController;
 use Illuminate\Support\Facades\Route;
@@ -35,8 +36,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/streak/{userId}', [StreakController::class, 'show']);
 
     Route::get('/teams', [TeamController::class, 'index']);
+    Route::get('/teams/leaderboard', [TeamController::class, 'leaderboard']);
     Route::post('/teams', [TeamController::class, 'store']);
     Route::get('/teams/{team}', [TeamController::class, 'show']);
+    Route::get('/teams/{team}/statistics', [TeamStatisticsController::class, 'show']);
     Route::put('/teams/{team}', [TeamController::class, 'update']);
     Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
     Route::post('/teams/{team}/join', [TeamController::class, 'join']);

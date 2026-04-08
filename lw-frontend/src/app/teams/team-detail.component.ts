@@ -1,11 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TeamService } from '../services/team.service';
-import type { TeamDetail, TeamJoinRequestItem } from './team.models';
+import type { TeamDetail, TeamJoinRequestItem, TeamLeaderboardRow, TeamStatistics } from './team.models';
 import { teamPresetLinearGradient } from './team.models';
 
-type TeamTab = 'details' | 'requests';
+type TeamTab = 'members' | 'statistics' | 'requests';
 
 @Component({
   selector: 'app-team-detail',
@@ -26,13 +26,61 @@ export class TeamDetailComponent implements OnInit {
   showDeleteModal = signal(false);
   deleting = signal(false);
 
-  activeTab = signal<TeamTab>('details');
+  activeTab = signal<TeamTab>('members');
   joinRequests = signal<TeamJoinRequestItem[]>([]);
   joinRequestsLoading = signal(false);
   joinRequestsError = signal<string | null>(null);
   processingRequestId = signal<number | null>(null);
 
+  teamStats = signal<TeamStatistics | null>(null);
+  teamStatsLoading = signal(false);
+  teamStatsError = signal<string | null>(null);
+
+  /** Global team leaderboard (by total workouts); used for rank + peek. */
+  teamLeaderboardRows = signal<TeamLeaderboardRow[]>([]);
+  teamLeaderboardLoading = signal(false);
+
   readonly presetGradient = teamPresetLinearGradient;
+
+  /** 1-based rank of this team among all teams, or null if unknown. */
+  leaderboardRankInfo = computed(() => {
+    const rows = this.teamLeaderboardRows();
+    const id = this.team()?.id;
+    if (!rows.length || !id) return null;
+    const idx = rows.findIndex((r) => r.id === id);
+    if (idx === -1) return null;
+    return { rank: idx + 1, total: rows.length };
+  });
+
+  /** Up to 3 teams around this team’s position; current row marked in template. */
+  leaderboardPeek = computed((): { rank: number; team: TeamLeaderboardRow; isCurrent: boolean }[] => {
+    const rows = this.teamLeaderboardRows();
+    const id = this.team()?.id;
+    if (!rows.length || !id) return [];
+    const idx = rows.findIndex((r) => r.id === id);
+    if (idx === -1) return [];
+    const n = rows.length;
+    let start: number;
+    let end: number;
+    if (n <= 3) {
+      start = 0;
+      end = n;
+    } else if (idx === 0) {
+      start = 0;
+      end = 3;
+    } else if (idx >= n - 1) {
+      start = n - 3;
+      end = n;
+    } else {
+      start = idx - 1;
+      end = idx + 2;
+    }
+    return rows.slice(start, end).map((team, i) => ({
+      rank: start + i + 1,
+      team,
+      isCurrent: team.id === id,
+    }));
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -46,12 +94,18 @@ export class TeamDetailComponent implements OnInit {
   fetch(id: string): void {
     this.loading.set(true);
     this.error.set(null);
+    this.teamLeaderboardRows.set([]);
     this.teamService.getTeam(id).subscribe({
       next: (t) => {
         this.team.set(t);
+        this.teamStats.set(null);
         this.loading.set(false);
+        this.loadTeamLeaderboard();
         if (t.is_creator && this.activeTab() === 'requests') {
           this.loadJoinRequests();
+        }
+        if (this.activeTab() === 'statistics') {
+          this.loadTeamStatistics();
         }
       },
       error: () => {
@@ -67,6 +121,40 @@ export class TeamDetailComponent implements OnInit {
     if (tab === 'requests' && this.team()?.is_creator) {
       this.loadJoinRequests();
     }
+    if (tab === 'statistics') {
+      this.loadTeamStatistics();
+    }
+  }
+
+  loadTeamLeaderboard(): void {
+    this.teamLeaderboardLoading.set(true);
+    this.teamService.getTeamsLeaderboard().subscribe({
+      next: (rows) => {
+        this.teamLeaderboardRows.set(rows);
+        this.teamLeaderboardLoading.set(false);
+      },
+      error: () => {
+        this.teamLeaderboardRows.set([]);
+        this.teamLeaderboardLoading.set(false);
+      },
+    });
+  }
+
+  loadTeamStatistics(): void {
+    const t = this.team();
+    if (!t) return;
+    this.teamStatsLoading.set(true);
+    this.teamStatsError.set(null);
+    this.teamService.getTeamStatistics(t.id).subscribe({
+      next: (s) => {
+        this.teamStats.set(s);
+        this.teamStatsLoading.set(false);
+      },
+      error: () => {
+        this.teamStatsError.set('Could not load statistics.');
+        this.teamStatsLoading.set(false);
+      },
+    });
   }
 
   loadJoinRequests(): void {
@@ -111,6 +199,10 @@ export class TeamDetailComponent implements OnInit {
     this.teamService.approveJoinRequest(t.id, req.id).subscribe({
       next: (updated) => {
         this.team.set(updated);
+        this.teamStats.set(null);
+        if (this.activeTab() === 'statistics') {
+          this.loadTeamStatistics();
+        }
         this.joinRequests.update((list) => list.filter((r) => r.id !== req.id));
         this.processingRequestId.set(null);
       },
