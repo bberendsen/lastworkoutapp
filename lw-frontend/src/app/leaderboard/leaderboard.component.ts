@@ -21,7 +21,7 @@ export class LeaderboardComponent implements OnInit {
   teamsLoading = signal(false);
   teamsError = signal<string | null>(null);
 
-  activeTab = signal<LeaderboardTab>('users');
+  activeTab = signal<LeaderboardTab>('teams');
 
   readonly presetGradient = teamPresetLinearGradient;
 

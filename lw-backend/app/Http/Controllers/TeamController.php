@@ -9,6 +9,7 @@ use App\Http\Responses\TeamDestroyedResponse;
 use App\Http\Responses\TeamDetailResponse;
 use App\Http\Responses\TeamSummaryResponse;
 use App\Models\Team;
+use App\Services\TeamXpService;
 use App\Support\StoresTeamLogos;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,10 @@ use Illuminate\Http\Request;
 class TeamController extends Controller
 {
     use StoresTeamLogos;
+
+    public function __construct(
+        private TeamXpService $teamXpService
+    ) {}
 
     /**
      * Teams ranked by total workouts attributed to the team (workouts.team_id).
@@ -28,12 +33,18 @@ class TeamController extends Controller
             ->orderBy('name')
             ->get();
 
+        $teamIds = $teams->pluck('id')->all();
+        $xpByTeam = $this->teamXpService->totalsForTeamIds($teamIds);
+        $xpThisWeekByTeam = $this->teamXpService->weeklyWorkoutXpByTeamIds($teamIds);
+
         $payload = $teams->map(fn (Team $t): array => [
             'id' => $t->id,
             'name' => $t->name,
             'logo_url' => $t->logo_url,
             'gradient_preset' => $t->gradient_preset,
             'total_workouts' => (int) $t->total_workouts,
+            'total_xp' => $xpByTeam[$t->id] ?? 0,
+            'xp_this_week' => $xpThisWeekByTeam[$t->id] ?? 0,
         ])->values()->all();
 
         return response()->json(['teams' => $payload]);
@@ -75,7 +86,10 @@ class TeamController extends Controller
             $team->loadCount('joinRequests');
         }
 
-        return response()->json(TeamDetailResponse::from($team, $viewer));
+        $xpBreakdown = $this->teamXpService->breakdownForTeam($team);
+        $xpBreakdown['xp_this_week'] = $this->teamXpService->weeklyWorkoutXpByTeamIds([$team->id])[$team->id] ?? 0;
+
+        return response()->json(TeamDetailResponse::from($team, $viewer, $xpBreakdown));
     }
 
     public function store(StoreTeamRequest $request)
@@ -164,7 +178,10 @@ class TeamController extends Controller
 
         $team->loadMembersForDetail();
 
-        return response()->json(TeamDetailResponse::from($team, $user));
+        $xpBreakdown = $this->teamXpService->breakdownForTeam($team);
+        $xpBreakdown['xp_this_week'] = $this->teamXpService->weeklyWorkoutXpByTeamIds([$team->id])[$team->id] ?? 0;
+
+        return response()->json(TeamDetailResponse::from($team, $user, $xpBreakdown));
     }
 
     public function leave(Request $request, Team $team)

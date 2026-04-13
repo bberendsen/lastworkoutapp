@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'has_subscription',
         'longest_streak',
+        'xp',
     ];
 
     protected $hidden = [
@@ -40,6 +41,7 @@ class User extends Authenticatable
     {
         return [
             'birthdate' => 'date',
+            'xp' => 'integer',
         ];
     }
 

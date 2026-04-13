@@ -4,10 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Workout;
+use App\Services\UserXpService;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class FiveExtraUsersSeeder extends Seeder
 {
@@ -85,6 +86,8 @@ class FiveExtraUsersSeeder extends Seeder
                     ]
                 );
             }
+
+            app(UserXpService::class)->backfillXpFromWorkouts($user->fresh());
         }
     }
 }

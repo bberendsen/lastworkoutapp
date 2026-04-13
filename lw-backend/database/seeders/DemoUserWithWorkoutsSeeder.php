@@ -4,10 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Workout;
+use App\Services\UserXpService;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class DemoUserWithWorkoutsSeeder extends Seeder
 {
@@ -33,5 +34,7 @@ class DemoUserWithWorkoutsSeeder extends Seeder
                 'source' => 'manual',
             ]);
         }
+
+        app(UserXpService::class)->backfillXpFromWorkouts($user->fresh());
     }
 }

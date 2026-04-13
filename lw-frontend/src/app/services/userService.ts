@@ -10,6 +10,7 @@ export interface User {
   birthdate?: string;
   email?: string;
   has_subscription?: boolean;
+  xp?: number;
 }
 
 export interface UserProfileTeam {
@@ -30,6 +31,9 @@ export interface UserProfilePayload {
   team: UserProfileTeam | null;
   stats: {
     total_workouts: number;
+    total_xp: number;
+    /** XP from workouts logged this calendar week (Mon–Sun), same rate as global workout XP. */
+    xp_this_week: number;
     last_workout_at: string | null;
     current_streak: number;
     longest_streak: number;

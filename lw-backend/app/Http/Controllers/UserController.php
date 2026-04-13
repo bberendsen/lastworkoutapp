@@ -11,6 +11,8 @@ use App\Http\Responses\ShowUserResponse;
 use App\Http\Responses\UserProfileResponse;
 use App\Models\User;
 use App\Services\StreakService;
+use App\Services\UserXpService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -49,13 +51,21 @@ class UserController extends Controller
         $currentStreak = $this->streakService->getCurrentStreak($user->id);
         $longestStreak = (int) ($user->longest_streak ?? 0);
 
+        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $weekEnd = Carbon::now()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $workoutsThisWeek = $user->workouts()
+            ->whereBetween('workout_datetime', [$weekStart, $weekEnd])
+            ->count();
+        $xpThisWeek = $workoutsThisWeek * UserXpService::WORKOUT_XP;
+
         return response()->json(UserProfileResponse::from(
             $user,
             $team,
             $totalWorkouts,
             $lastWorkout?->workout_datetime,
             $currentStreak,
-            $longestStreak
+            $longestStreak,
+            $xpThisWeek
         ));
     }
 

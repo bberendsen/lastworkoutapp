@@ -17,7 +17,8 @@ final class UserProfileResponse
         int $totalWorkouts,
         ?CarbonInterface $lastWorkoutAt,
         int $currentStreak,
-        int $longestStreak
+        int $longestStreak,
+        int $xpThisWeek
     ): array {
         $age = $user->birthdate ? $user->birthdate->age : null;
 
@@ -37,6 +38,8 @@ final class UserProfileResponse
             ] : null,
             'stats' => [
                 'total_workouts' => $totalWorkouts,
+                'total_xp' => (int) ($user->xp ?? 0),
+                'xp_this_week' => $xpThisWeek,
                 'last_workout_at' => $lastWorkoutAt?->toIso8601String(),
                 'current_streak' => $currentStreak,
                 'longest_streak' => $longestStreak,

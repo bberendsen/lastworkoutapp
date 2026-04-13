@@ -5,12 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Responses\TeamStatisticsResponse;
 use App\Models\Team;
 use App\Models\Workout;
+use App\Services\TeamXpService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class TeamStatisticsController extends Controller
 {
+    public function __construct(
+        private TeamXpService $teamXpService
+    ) {}
+
     public function show(Team $team): JsonResponse
     {
         $now = Carbon::now();
@@ -38,9 +43,14 @@ class TeamStatisticsController extends Controller
             ->orderByDesc('workouts_this_week')
             ->get();
 
+        $xpBreakdown = $this->teamXpService->breakdownForTeam($team);
+        $xpThisWeek = $this->teamXpService->weeklyWorkoutXpByTeamIds([$team->id])[$team->id] ?? 0;
+
         return response()->json(TeamStatisticsResponse::from(
             $totalWorkouts,
             $workoutsThisWeek,
+            (int) $xpBreakdown['total'],
+            $xpThisWeek,
             $weekStart,
             $weekEnd,
             $weeklyRows

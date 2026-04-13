@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Workout;
 use App\Services\StreakService;
 use App\Services\TeamChallengeService;
+use App\Services\UserXpService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,8 @@ class WorkoutController extends Controller
 {
     public function __construct(
         private StreakService $streakService,
-        private TeamChallengeService $teamChallengeService
+        private TeamChallengeService $teamChallengeService,
+        private UserXpService $userXpService
     ) {}
 
     public function store(Request $request)
@@ -49,6 +51,11 @@ class WorkoutController extends Controller
             'workout_datetime' => $workoutDatetime,
             'source' => $source,
         ]);
+
+        $user = User::find($validated['user_id']);
+        if ($user !== null) {
+            $this->userXpService->grantWorkoutXp($user);
+        }
 
         $this->streakService->updateLongestStreakIfNeeded($validated['user_id']);
         $this->teamChallengeService->syncCompletionsForTeam($teamId);

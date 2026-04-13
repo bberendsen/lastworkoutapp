@@ -43,6 +43,18 @@ export interface TeamMember {
   last_name: string;
   /** Workouts logged while attributed to this team. */
   team_workouts_count: number;
+  /** Total lifetime XP (workouts + personal milestones). */
+  xp: number;
+}
+
+/** Team total = sum of members’ XP + one-time challenge bonuses. */
+export interface TeamXpInfo {
+  total: number;
+  from_members: number;
+  from_challenges: number;
+  progress_band: { from: number; to: number; progress: number };
+  /** Workout XP this week (team-attributed workouts). */
+  xp_this_week: number;
 }
 
 /** Row for global team leaderboard (total workouts for the team). */
@@ -52,6 +64,9 @@ export interface TeamLeaderboardRow {
   logo_url: string | null;
   gradient_preset: TeamGradientPreset;
   total_workouts: number;
+  total_xp: number;
+  /** Workout XP this week from team-attributed workouts. */
+  xp_this_week: number;
 }
 
 export interface TeamChallengeItem {
@@ -62,7 +77,7 @@ export interface TeamChallengeItem {
   progress: number;
   status_label: string;
   completed: boolean;
-  xp_reward: number | null;
+  xp_reward: number;
 }
 
 export interface TeamChallengesPayload {
@@ -72,6 +87,10 @@ export interface TeamChallengesPayload {
 export interface TeamStatistics {
   total_workouts: number;
   workouts_this_week: number;
+  /** Full team XP (members + challenge bonuses). */
+  total_xp: number;
+  /** Workout XP this week from team-attributed workouts only. */
+  xp_this_week: number;
   week_starts_at: string;
   week_ends_at: string;
   weekly_ranking: {
@@ -80,11 +99,13 @@ export interface TeamStatistics {
     first_name: string;
     last_name: string;
     workouts_this_week: number;
+    xp_this_week: number;
   }[];
 }
 
 export interface TeamDetail extends TeamSummary {
   members: TeamMember[];
+  xp: TeamXpInfo;
   has_pending_request?: boolean;
   /** True when you belong to a different team (cannot request to join this one). */
   already_in_another_team?: boolean;

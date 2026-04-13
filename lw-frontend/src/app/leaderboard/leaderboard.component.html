@@ -2,12 +2,25 @@
   <div class="flex items-center justify-between mb-6 gap-4">
     <div class="flex flex-col gap-1 min-w-0">
       <h1 class="text-xl font-semibold text-black">Leaderboard</h1>
-      <span class="text-xs font-normal text-gray-500">Users and teams by activity</span>
+      <span class="text-xs font-normal text-gray-500">Users and teams ranked by activity</span>
     </div>
     <button (click)="backToHomescreen()" class="btn-primary px-4 py-2 text-sm shrink-0">Back to Homescreen</button>
   </div>
 
   <div class="flex flex-wrap gap-1 p-1 rounded-lg bg-gray-100 mb-6" role="tablist" aria-label="Leaderboard type">
+        <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'teams'"
+      (click)="setTab('teams')"
+      class="rounded-md px-3 py-2 text-sm font-medium transition-colors min-w-0"
+      [class.bg-white]="activeTab() === 'teams'"
+      [class.text-black]="activeTab() === 'teams'"
+      [class.shadow-sm]="activeTab() === 'teams'"
+      [class.text-gray-600]="activeTab() !== 'teams'"
+    >
+      Teams
+    </button>
     <button
       type="button"
       role="tab"
@@ -21,19 +34,6 @@
     >
       Users
     </button>
-    <button
-      type="button"
-      role="tab"
-      [attr.aria-selected]="activeTab() === 'teams'"
-      (click)="setTab('teams')"
-      class="rounded-md px-3 py-2 text-sm font-medium transition-colors min-w-0"
-      [class.bg-white]="activeTab() === 'teams'"
-      [class.text-black]="activeTab() === 'teams'"
-      [class.shadow-sm]="activeTab() === 'teams'"
-      [class.text-gray-600]="activeTab() !== 'teams'"
-    >
-      Teams
-    </button>
   </div>
 
   @if (activeTab() === 'users') {
@@ -46,6 +46,7 @@
             <tr class="border-b border-gray-200 bg-gray-50">
               <th class="text-left py-2 px-2 font-medium text-gray-500">#</th>
               <th class="text-left py-2 px-3 font-medium text-gray-500">User</th>
+              <th scope="col" class="py-2 px-2 font-medium text-gray-500 text-right align-middle">XP</th>
               <th class="text-center py-2 px-2 font-medium text-gray-500">Streak</th>
               <th class="text-right py-2 px-3 font-medium text-gray-500">Last workout</th>
             </tr>
@@ -56,6 +57,12 @@
                 <td class="py-2 px-2 text-gray-400 font-medium">{{ i + 1 }}</td>
                 <td class="py-2 px-3">
                   <a [routerLink]="['/users', item.id]" class="text-black font-medium hover:underline">{{ item.username }}</a>
+                </td>
+                <td class="py-2 px-2 align-middle">
+                  <div class="flex flex-row items-center justify-end gap-1.5">
+                    <span class="font-semibold text-violet-900 tabular-nums leading-none">{{ item.xp }}</span>
+                    <span class="text-[10px] font-semibold tabular-nums text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded leading-none shrink-0">+{{ item.xp_this_week }}</span>
+                  </div>
                 </td>
                 @if (item.current_streak > 0) {
                   <td class="py-2 px-2 text-center">
@@ -101,6 +108,7 @@
             <tr class="border-b border-gray-200 bg-gray-50">
               <th class="text-left py-2 px-2 font-medium text-gray-500 w-10">#</th>
               <th class="text-left py-2 px-3 font-medium text-gray-500">Team</th>
+              <th scope="col" class="py-2 px-2 font-medium text-gray-500 text-right align-middle">XP</th>
               <th class="text-right py-2 px-3 font-medium text-gray-500">Workouts</th>
             </tr>
           </thead>
@@ -129,6 +137,12 @@
                     }
                     <span class="font-medium text-black truncate group-hover:underline">{{ row.name }}</span>
                   </a>
+                </td>
+                <td class="py-2.5 px-2 align-middle">
+                  <div class="flex flex-row items-center justify-end gap-1.5">
+                    <span class="font-semibold text-violet-900 tabular-nums leading-none">{{ row.total_xp }}</span>
+                    <span class="text-[10px] font-semibold tabular-nums text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded leading-none shrink-0">+{{ row.xp_this_week }}</span>
+                  </div>
                 </td>
                 <td class="py-2.5 px-3 text-right font-semibold text-black tabular-nums">{{ row.total_workouts }}</td>
               </tr>

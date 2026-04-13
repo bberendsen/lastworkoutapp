@@ -8,6 +8,7 @@ use App\Http\Responses\TeamDetailResponse;
 use App\Http\Responses\TeamJoinRequestResponse;
 use App\Models\Team;
 use App\Models\TeamJoinRequest;
+use App\Services\TeamXpService;
 use Illuminate\Support\Facades\DB;
 
 class TeamJoinRequestController extends Controller
@@ -24,7 +25,7 @@ class TeamJoinRequestController extends Controller
         return response()->json(['requests' => $payload]);
     }
 
-    public function approve(TeamCreatorRequest $request, Team $team, TeamJoinRequest $joinRequest)
+    public function approve(TeamCreatorRequest $request, Team $team, TeamJoinRequest $joinRequest, TeamXpService $teamXpService)
     {
         if ((string) $joinRequest->team_id !== (string) $team->id) {
             abort(404);
@@ -48,7 +49,10 @@ class TeamJoinRequestController extends Controller
         $team->loadMembersForDetail();
         $team->loadCount('users');
 
-        return response()->json(TeamDetailResponse::from($team, $request->user()));
+        $xpBreakdown = $teamXpService->breakdownForTeam($team);
+        $xpBreakdown['xp_this_week'] = $teamXpService->weeklyWorkoutXpByTeamIds([$team->id])[$team->id] ?? 0;
+
+        return response()->json(TeamDetailResponse::from($team, $request->user(), $xpBreakdown));
     }
 
     public function reject(TeamCreatorRequest $request, Team $team, TeamJoinRequest $joinRequest)

@@ -28,4 +28,15 @@ enum TeamChallengeType: string
             self::ExtraHard => 'This week, at least 5 people each log 3+ workouts.',
         };
     }
+
+    /** XP granted to the team’s total when this challenge is completed (one-time per team). */
+    public function xpReward(): int
+    {
+        return match ($this) {
+            self::ConsistencyKings => 200,
+            self::NoExcuses => 150,
+            self::Team300 => 400,
+            self::ExtraHard => 175,
+        };
+    }
 }

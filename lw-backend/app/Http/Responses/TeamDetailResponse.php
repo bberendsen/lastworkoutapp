@@ -8,9 +8,16 @@ use App\Models\User;
 final class TeamDetailResponse
 {
     /**
+     * @param  array{
+     *     total: int,
+     *     from_members: int,
+     *     from_challenges: int,
+     *     progress_band: array{from: int, to: int, progress: float},
+     *     xp_this_week?: int
+     * }  $xpBreakdown
      * @return array<string, mixed>
      */
-    public static function from(Team $team, ?User $viewer = null): array
+    public static function from(Team $team, ?User $viewer, array $xpBreakdown): array
     {
         $members = $team->relationLoaded('users')
             ? $team->users
@@ -43,6 +50,13 @@ final class TeamDetailResponse
             'gradient_preset' => $team->gradient_preset,
             'members_count' => $members->count(),
             'members' => $memberPayloads,
+            'xp' => [
+                'total' => $xpBreakdown['total'],
+                'from_members' => $xpBreakdown['from_members'],
+                'from_challenges' => $xpBreakdown['from_challenges'],
+                'progress_band' => $xpBreakdown['progress_band'],
+                'xp_this_week' => (int) ($xpBreakdown['xp_this_week'] ?? 0),
+            ],
             'is_member' => $isMember,
             'is_creator' => $isCreator,
             'has_pending_request' => $hasPendingRequest,

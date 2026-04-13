@@ -24,9 +24,9 @@ class TeamChallengeService
         foreach (TeamChallengeType::cases() as $type) {
             $out[] = match ($type) {
                 TeamChallengeType::ConsistencyKings => $this->buildConsistencyKings($team, $memberIds, $completionTypes),
-                TeamChallengeType::NoExcuses => $this->buildNoExcuses($team, $memberIds),
+                TeamChallengeType::NoExcuses => $this->buildNoExcuses($team, $memberIds, $completionTypes),
                 TeamChallengeType::Team300 => $this->buildTeam300($team, $memberIds, $completionTypes),
-                TeamChallengeType::ExtraHard => $this->buildExtraHard($team, $memberIds),
+                TeamChallengeType::ExtraHard => $this->buildExtraHard($team, $memberIds, $completionTypes),
             };
         }
 
@@ -58,6 +58,14 @@ class TeamChallengeService
         if ($total >= 300 && ! $completionTypes->contains(TeamChallengeType::Team300->value)) {
             $this->recordCompletion($team->id, TeamChallengeType::Team300);
         }
+
+        if ($this->noExcusesMet($team, $memberIds) && ! $completionTypes->contains(TeamChallengeType::NoExcuses->value)) {
+            $this->recordCompletion($team->id, TeamChallengeType::NoExcuses);
+        }
+
+        if ($this->extraHardMet($team, $memberIds) && ! $completionTypes->contains(TeamChallengeType::ExtraHard->value)) {
+            $this->recordCompletion($team->id, TeamChallengeType::ExtraHard);
+        }
     }
 
     /**
@@ -80,15 +88,16 @@ class TeamChallengeService
             'progress' => round($progress, 4),
             'status_label' => $streak >= 7 ? '7 / 7 days' : $streak.' / 7 days',
             'completed' => $completed,
-            'xp_reward' => null,
+            'xp_reward' => $type->xpReward(),
         ];
     }
 
     /**
      * @param  array<string>  $memberIds
+     * @param  Collection<int, string>  $completionTypes
      * @return array<string, mixed>
      */
-    private function buildNoExcuses(Team $team, array $memberIds): array
+    private function buildNoExcuses(Team $team, array $memberIds, Collection $completionTypes): array
     {
         $type = TeamChallengeType::NoExcuses;
         $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
@@ -102,7 +111,9 @@ class TeamChallengeService
         $counts = $this->workoutCountsPerUserInRange($team, $memberIds, $weekStart, $weekEnd);
         $qualified = $counts->filter(fn (int $c): bool => $c >= 2)->count();
         $progress = $qualified / $memberCount;
-        $completed = $qualified === $memberCount;
+        $completedLive = $qualified === $memberCount;
+        $completedInDb = $completionTypes->contains($type->value);
+        $completed = $completedInDb || $completedLive;
 
         return [
             'id' => $type->value,
@@ -111,7 +122,7 @@ class TeamChallengeService
             'progress' => round(min($progress, 1.0), 4),
             'status_label' => $qualified.' / '.$memberCount.' members (2+ this week)',
             'completed' => $completed,
-            'xp_reward' => null,
+            'xp_reward' => $type->xpReward(),
         ];
     }
 
@@ -135,15 +146,16 @@ class TeamChallengeService
             'progress' => round($progress, 4),
             'status_label' => $total.' / 300 workouts',
             'completed' => $completed,
-            'xp_reward' => null,
+            'xp_reward' => $type->xpReward(),
         ];
     }
 
     /**
      * @param  array<string>  $memberIds
+     * @param  Collection<int, string>  $completionTypes
      * @return array<string, mixed>
      */
-    private function buildExtraHard(Team $team, array $memberIds): array
+    private function buildExtraHard(Team $team, array $memberIds, Collection $completionTypes): array
     {
         $type = TeamChallengeType::ExtraHard;
         $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
@@ -152,7 +164,9 @@ class TeamChallengeService
         $counts = $this->workoutCountsPerUserInRange($team, $memberIds, $weekStart, $weekEnd);
         $peopleWith3Plus = $counts->filter(fn (int $c): bool => $c >= 3)->count();
         $progress = min($peopleWith3Plus, 5) / 5;
-        $completed = $peopleWith3Plus >= 5;
+        $completedLive = $peopleWith3Plus >= 5;
+        $completedInDb = $completionTypes->contains($type->value);
+        $completed = $completedInDb || $completedLive;
 
         return [
             'id' => $type->value,
@@ -161,7 +175,7 @@ class TeamChallengeService
             'progress' => round($progress, 4),
             'status_label' => $peopleWith3Plus.' / 5 people (3+ this week)',
             'completed' => $completed,
-            'xp_reward' => null,
+            'xp_reward' => $type->xpReward(),
         ];
     }
 
@@ -177,8 +191,38 @@ class TeamChallengeService
             'progress' => 0,
             'status_label' => '—',
             'completed' => false,
-            'xp_reward' => null,
+            'xp_reward' => $type->xpReward(),
         ];
+    }
+
+    /**
+     * @param  array<string>  $memberIds
+     */
+    private function noExcusesMet(Team $team, array $memberIds): bool
+    {
+        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $memberCount = count($memberIds);
+        if ($memberCount === 0) {
+            return false;
+        }
+        $counts = $this->workoutCountsPerUserInRange($team, $memberIds, $weekStart, $weekEnd);
+        $qualified = $counts->filter(fn (int $c): bool => $c >= 2)->count();
+
+        return $qualified === $memberCount;
+    }
+
+    /**
+     * @param  array<string>  $memberIds
+     */
+    private function extraHardMet(Team $team, array $memberIds): bool
+    {
+        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $counts = $this->workoutCountsPerUserInRange($team, $memberIds, $weekStart, $weekEnd);
+        $peopleWith3Plus = $counts->filter(fn (int $c): bool => $c >= 3)->count();
+
+        return $peopleWith3Plus >= 5;
     }
 
     /**

@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,7 +12,7 @@ import type {
 } from './team.models';
 import { teamPresetLinearGradient } from './team.models';
 
-type TeamTab = 'members' | 'statistics' | 'challenges' | 'requests';
+type TeamTab = 'overview' | 'members' | 'statistics' | 'challenges' | 'requests';
 
 @Component({
   selector: 'app-team-detail',
@@ -22,6 +23,7 @@ type TeamTab = 'members' | 'statistics' | 'challenges' | 'requests';
 export class TeamDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private teamService = inject(TeamService);
 
   team = signal<TeamDetail | null>(null);
@@ -32,7 +34,7 @@ export class TeamDetailComponent implements OnInit {
   showDeleteModal = signal(false);
   deleting = signal(false);
 
-  activeTab = signal<TeamTab>('members');
+  activeTab = signal<TeamTab>('overview');
   joinRequests = signal<TeamJoinRequestItem[]>([]);
   joinRequestsLoading = signal(false);
   joinRequestsError = signal<string | null>(null);
@@ -91,6 +93,10 @@ export class TeamDetailComponent implements OnInit {
       isCurrent: team.id === id,
     }));
   });
+
+  back(): void {
+    this.location.back();
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

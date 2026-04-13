@@ -22,6 +22,9 @@ export interface LeaderboardWithStreak {
   last_workout: string;
   current_streak: number;
   longest_streak: number;
+  xp: number;
+  /** Workout XP earned this calendar week (Mon–Sun), same as profile. */
+  xp_this_week: number;
 }
 
 @Injectable({

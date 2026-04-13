@@ -74,7 +74,7 @@ class StreakService
     {
         $current = $this->getCurrentStreak($userId);
         $user = User::find($userId);
-        if (!$user) {
+        if (! $user) {
             return;
         }
         $longest = (int) ($user->longest_streak ?? 0);
@@ -86,6 +86,7 @@ class StreakService
 
     /**
      * Leaderboard with current_streak (weekly) and longest_streak per user.
+     * Ordered by total XP (desc), then most recent workout.
      */
     public function getLeaderboardWithStreaks(): array
     {
@@ -95,15 +96,20 @@ class StreakService
                 'users.id',
                 'users.username',
                 'users.longest_streak',
+                'users.xp',
                 DB::raw('MAX(workouts.workout_datetime) as last_workout')
             )
-            ->groupBy('users.id', 'users.username', 'users.longest_streak')
+            ->groupBy('users.id', 'users.username', 'users.longest_streak', 'users.xp')
+            ->orderByDesc('users.xp')
             ->orderByDesc('last_workout')
             ->get();
 
         if ($leaderboard->isEmpty()) {
             return [];
         }
+
+        $userIds = $leaderboard->pluck('id')->all();
+        $xpThisWeekByUser = $this->workoutXpThisWeekForUserIds($userIds);
 
         $result = [];
         foreach ($leaderboard as $row) {
@@ -114,10 +120,44 @@ class StreakService
                 'last_workout' => $row->last_workout,
                 'current_streak' => $currentStreak,
                 'longest_streak' => (int) ($row->longest_streak ?? 0),
+                'xp' => (int) ($row->xp ?? 0),
+                'xp_this_week' => (int) ($xpThisWeekByUser[$row->id] ?? 0),
             ];
         }
 
         return $result;
+    }
+
+    /**
+     * Workout-based XP earned this ISO week (Mon–Sun) per user. Matches profile `xp_this_week`.
+     *
+     * @param  list<string>  $userIds
+     * @return array<string, int> user_id => xp
+     */
+    private function workoutXpThisWeekForUserIds(array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_filter($userIds)));
+        if ($userIds === []) {
+            return [];
+        }
+
+        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->startOfDay();
+        $weekEnd = Carbon::now()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+
+        $counts = Workout::query()
+            ->whereIn('user_id', $userIds)
+            ->whereBetween('workout_datetime', [$weekStart, $weekEnd])
+            ->selectRaw('user_id, COUNT(*) as c')
+            ->groupBy('user_id')
+            ->pluck('c', 'user_id');
+
+        $rate = UserXpService::WORKOUT_XP;
+        $out = [];
+        foreach ($userIds as $uid) {
+            $out[$uid] = (int) ($counts[$uid] ?? 0) * $rate;
+        }
+
+        return $out;
     }
 
     /**
