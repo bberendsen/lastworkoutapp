@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [UserController::class, 'logout']);
     Route::post('/workouts', [WorkoutController::class, 'store']);
     Route::get('/workouts/leaderboard', [WorkoutController::class, 'leaderboard']);
+    Route::get('/workouts/feed', [WorkoutController::class, 'feed']);
     Route::get('/workouts/latest/{userId}', [WorkoutController::class, 'latest']);
     Route::get('/workouts/{userId}', [WorkoutController::class, 'byUser']);
     Route::post('/scores/{userId}', [ScoreController::class, 'store']);

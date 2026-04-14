@@ -13,6 +13,7 @@ import { TeamCreateComponent } from './teams/team-create.component';
 import { TeamEditComponent } from './teams/team-edit.component';
 import { UserProfileComponent } from './users/user-profile.component';
 import { LoginComponent } from './auth/login/login.component';
+import { LiveFeedComponent } from './live-feed/live-feed.component';
 import { ResetPasswordRequestComponent } from './auth/password-reset/reset-password-request.component';
 import { ResetPasswordVerifyComponent } from './auth/password-reset/reset-password-verify.component';
 import { ResetPasswordNewComponent } from './auth/password-reset/reset-password-new.component';
@@ -83,6 +84,12 @@ export const routes: Routes = [
     component: TeamsListComponent,
     canActivate: [authGuard],
     pathMatch: 'full',
+  },
+  {
+    path: 'live-feed',
+    component: LiveFeedComponent,
+    canActivate: [authGuard],
+    pathMatch: 'full'
   },
   {
     path: 'login',

@@ -9,6 +9,41 @@ export interface Workout {
   source: string;
 }
 
+export interface LiveFeedItem {
+  id: string;
+  event_type: 'workout' | 'challenge';
+  event_datetime: string;
+  workout_datetime: string | null;
+  user: {
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    initials: string;
+    xp_total: number;
+    xp_earned: number;
+  } | null;
+  team: {
+    id: string | null;
+    name: string | null;
+    logo_url: string | null;
+  };
+  challenge: {
+    type: string;
+    title: string;
+    xp_reward: number;
+  } | null;
+}
+
+export interface LiveFeedResponse {
+  items: LiveFeedItem[];
+  meta: {
+    page: number;
+    per_page: number;
+    has_more: boolean;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,6 +62,21 @@ export class WorkoutService {
 
   getWorkoutByUser(userId: string): Observable<Workout[]> {
     return this.http.get<Workout[]>(`${this.apiUrl}${userId}`);
+  }
+
+  getLiveFeed(page: number = 1, perPage: number = 50): Observable<LiveFeedResponse> {
+    return this.http.get<{ items?: LiveFeedItem[]; meta?: { page?: number; per_page?: number; has_more?: boolean } }>(
+      `${this.apiUrl}feed?page=${page}&per_page=${perPage}`
+    ).pipe(
+      map((r) => ({
+        items: Array.isArray(r.items) ? r.items : [],
+        meta: {
+          page: r.meta?.page ?? page,
+          per_page: r.meta?.per_page ?? perPage,
+          has_more: !!r.meta?.has_more,
+        },
+      }))
+    );
   }
 
   logWorkout(userId: string, source: string = 'manual', workoutDatetime?: string): Observable<any> {

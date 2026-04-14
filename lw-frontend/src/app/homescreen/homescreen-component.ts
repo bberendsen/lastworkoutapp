@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { Workout, WorkoutService } from '../services/workoutService';
+import { LiveFeedItem, Workout, WorkoutService } from '../services/workoutService';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -62,6 +62,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   readonly presetGradient = teamPresetLinearGradient;
   /** Team you’re a member of (one per account); null if none or load failed. */
   myTeam: WritableSignal<TeamSummary | null> = signal(null);
+  liveFeedPreview: WritableSignal<LiveFeedItem[]> = signal([]);
 
   constructor(
     private workoutService: WorkoutService,
@@ -98,6 +99,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
 
     this.loadLeaderboard();
     this.loadCurrentStreak();
+    this.loadLiveFeedPreview();
   }
 
   ngOnDestroy(): void {
@@ -117,6 +119,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.loadWorkouts();
         this.loadLeaderboard();
+        this.loadLiveFeedPreview();
         this.streakService.getCurrentStreak(this.userId).subscribe({
           next: (res) => {
             this.currentStreak.set(res.current_streak);
@@ -200,6 +203,13 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       error: () => {
         this.myTeam.set(null);
       },
+    });
+  }
+
+  private loadLiveFeedPreview(): void {
+    this.workoutService.getLiveFeed(1, 3).subscribe({
+      next: (res) => this.liveFeedPreview.set(res.items.slice(0, 3)),
+      error: () => this.liveFeedPreview.set([]),
     });
   }
 

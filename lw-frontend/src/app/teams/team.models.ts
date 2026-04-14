@@ -101,6 +101,20 @@ export interface TeamStatistics {
     workouts_this_week: number;
     xp_this_week: number;
   }[];
+  current_week_by_day: {
+    day: string;
+    workouts: number;
+    contributors: {
+      initials: string;
+      label: string;
+      workouts: number;
+    }[];
+  }[];
+  last_12_weeks: {
+    week_starts_at: string;
+    week_ends_at: string;
+    workouts: number;
+  }[];
 }
 
 export interface TeamDetail extends TeamSummary {

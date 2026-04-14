@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Responses\WorkoutFeedResponse;
 use App\Models\User;
 use App\Models\Workout;
 use App\Services\StreakService;
@@ -95,5 +96,48 @@ class WorkoutController extends Controller
             ->get();
 
         return response()->json($leaderboard);
+    }
+
+    public function feed(Request $request)
+    {
+        $perPage = min(50, max(1, (int) $request->query('per_page', 50)));
+        $page = max(1, (int) $request->query('page', 1));
+        $workoutLimit = max(150, $page * $perPage * 2);
+        $challengeLimit = max(80, $page * $perPage);
+
+        $workoutRows = DB::table('workouts')
+            ->join('users', 'users.id', '=', 'workouts.user_id')
+            ->leftJoin('teams', 'teams.id', '=', 'workouts.team_id')
+            ->select(
+                'workouts.id',
+                'workouts.user_id',
+                'workouts.team_id',
+                'workouts.workout_datetime',
+                'users.username',
+                'users.first_name',
+                'users.last_name',
+                'users.xp as xp_total',
+                'teams.name as team_name',
+                'teams.logo_url as team_logo_url'
+            )
+            ->orderByDesc('workouts.workout_datetime')
+            ->limit($workoutLimit)
+            ->get();
+
+        $challengeRows = DB::table('team_challenge_completions')
+            ->join('teams', 'teams.id', '=', 'team_challenge_completions.team_id')
+            ->select(
+                'team_challenge_completions.id',
+                'team_challenge_completions.team_id',
+                'team_challenge_completions.challenge_type',
+                'team_challenge_completions.completed_at',
+                'teams.name as team_name',
+                'teams.logo_url as team_logo_url'
+            )
+            ->orderByDesc('team_challenge_completions.completed_at')
+            ->limit($challengeLimit)
+            ->get();
+
+        return response()->json(WorkoutFeedResponse::fromRows($workoutRows, $challengeRows, $page, $perPage));
     }
 }

@@ -213,6 +213,47 @@
     </a>
   }
 
+  <div class="mb-8 rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+      <div class="flex items-center gap-2">
+        <h3 class="text-sm font-semibold text-black">Live feed</h3>
+        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">Live</span>
+      </div>
+      <a routerLink="/live-feed" class="text-xs font-medium text-gray-600 hover:text-black">View all</a>
+    </div>
+    @if (liveFeedPreview().length === 0) {
+      <p class="px-4 py-6 text-sm text-gray-500">No live updates yet.</p>
+    } @else {
+      <div class="divide-y divide-gray-100">
+        @for (item of liveFeedPreview(); track item.id) {
+          <div class="px-4 py-3 flex items-center gap-3">
+            <div class="h-8 w-8 shrink-0 rounded-full bg-gray-900 text-white text-[10px] font-semibold flex items-center justify-center">
+              @if (item.event_type === 'workout' && item.user) {
+                {{ item.user.initials }}
+              } @else {
+                CH
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              @if (item.event_type === 'workout' && item.user) {
+                <p class="text-xs text-black truncate">
+                  <span class="font-semibold">{{ item.user.first_name }} {{ item.user.last_name }}</span>
+                  completed a workout
+                </p>
+              } @else if (item.event_type === 'challenge' && item.challenge) {
+                <p class="text-xs text-black truncate">
+                  <span class="font-semibold">{{ item.team.name || 'A team' }}</span>
+                  completed {{ item.challenge.title }}
+                </p>
+              }
+              <p class="text-[11px] text-gray-500">{{ item.event_datetime | date:'short' }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
   <div class="leaderboard">
     <div class="flex flex-col justify-between gap-1 mb-4">
       <h2 class="text-xl font-semibold text-black">Leaderboard</h2>

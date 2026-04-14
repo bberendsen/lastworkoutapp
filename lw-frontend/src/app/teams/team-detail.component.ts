@@ -54,6 +54,27 @@ export class TeamDetailComponent implements OnInit {
 
   readonly presetGradient = teamPresetLinearGradient;
 
+  currentWeekByDayBars = computed(() => {
+    const stats = this.teamStats();
+    const rows = stats?.current_week_by_day ?? [];
+    const max = Math.max(2, ...rows.map((r) => r.workouts));
+    return rows.map((r) => ({
+      ...r,
+      percent: (r.workouts / max) * 100,
+    }));
+  });
+
+  lastTwelveWeekBars = computed(() => {
+    const stats = this.teamStats();
+    const rows = stats?.last_12_weeks ?? [];
+    const max = Math.max(1, ...rows.map((r) => r.workouts));
+    return rows.map((r) => ({
+      ...r,
+      label: new Date(r.week_starts_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      percent: (r.workouts / max) * 100,
+    }));
+  });
+
   /** 1-based rank of this team among all teams, or null if unknown. */
   leaderboardRankInfo = computed(() => {
     const rows = this.teamLeaderboardRows();
@@ -325,4 +346,5 @@ export class TeamDetailComponent implements OnInit {
       },
     });
   }
+
 }

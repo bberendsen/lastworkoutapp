@@ -377,6 +377,78 @@
                 </div>
               </div>
 
+              <div class="grid grid-cols-1 gap-3">
+                <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+                  <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-black">This week total workouts</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Mon-Sun team workouts</p>
+                  </div>
+                  @if (currentWeekByDayBars().length === 0) {
+                    <p class="text-sm text-gray-500 px-4 py-8 text-center">No workouts logged this week yet.</p>
+                  } @else {
+                    <div class="px-4 py-4">
+                      <div class="mb-2 h-28 relative">
+                        <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                          <div class="border-b border-gray-100"></div>
+                          <div class="border-b border-gray-100"></div>
+                          <div class="border-b border-gray-200"></div>
+                        </div>
+                        <div class="absolute inset-0 flex items-end justify-between gap-2">
+                          @for (day of currentWeekByDayBars(); track day.day) {
+                            <div class="flex-1 min-w-0 h-full flex items-end justify-center">
+                              <div
+                                class="w-full max-w-9 rounded-t-sm transition-[height] duration-300 ease-out"
+                                [style.height.%]="day.percent"
+                                [style.background]="day.workouts > 0 ? presetGradient(t.gradient_preset) : 'transparent'"
+                                [class.border]="day.workouts === 0"
+                                [class.border-dashed]="day.workouts === 0"
+                                [class.border-gray-300]="day.workouts === 0"
+                                [attr.aria-label]="day.day + ': ' + day.workouts + ' workouts'"
+                              ></div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                      <div class="flex items-start justify-between gap-2">
+                        @for (day of currentWeekByDayBars(); track day.day) {
+                          <div class="flex-1 min-w-0 flex flex-col items-center gap-1">
+                            <div class="text-[10px] font-semibold text-gray-700 tabular-nums leading-none">{{ day.workouts }}</div>
+                            <div class="text-[10px] text-gray-500 leading-none">{{ day.day }}</div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
+                  <div class="px-4 py-3 border-b border-gray-100">
+                    <h2 class="text-sm font-semibold text-black">Total workouts · last 12 weeks</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Weekly trend to track progress</p>
+                  </div>
+                  @if (lastTwelveWeekBars().length === 0) {
+                    <p class="text-sm text-gray-500 px-4 py-8 text-center">No history yet.</p>
+                  } @else {
+                    <div class="px-3 py-4 grid grid-cols-6 sm:grid-cols-12 gap-2 items-end">
+                      @for (week of lastTwelveWeekBars(); track week.week_starts_at) {
+                        <div class="flex flex-col items-center gap-1 min-w-0">
+                          <div class="text-[10px] font-semibold text-gray-600 tabular-nums leading-none">{{ week.workouts }}</div>
+                          <div class="h-24 w-full max-w-8 rounded-sm bg-gray-100 overflow-hidden flex items-end">
+                            <div
+                              class="w-full rounded-sm transition-[height] duration-300 ease-out"
+                              [style.height.%]="week.percent"
+                              [style.background]="presetGradient(t.gradient_preset)"
+                              [attr.aria-label]="'Week of ' + (week.week_starts_at | date:'mediumDate') + ': ' + week.workouts + ' workouts'"
+                            ></div>
+                          </div>
+                          <div class="text-[10px] text-gray-500 leading-none truncate w-full text-center">{{ week.label }}</div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+
               <div class="rounded-lg border border-gray-200 bg-white overflow-hidden shadow-sm">
                 <div class="px-4 py-3 border-b border-gray-100">
                   <h2 class="text-sm font-semibold text-black">This week · by member</h2>

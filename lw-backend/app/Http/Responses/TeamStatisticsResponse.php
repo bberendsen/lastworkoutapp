@@ -10,6 +10,8 @@ final class TeamStatisticsResponse
 {
     /**
      * @param  Collection<int, object>  $weeklyRows
+     * @param  Collection<int, array{day: string, workouts: int, contributors: array<int, array{initials: string, label: string, workouts: int}>}>  $currentWeekByDay
+     * @param  Collection<int, array{week_starts_at: string, week_ends_at: string, workouts: int}>  $weeklyTotals
      * @return array<string, mixed>
      */
     public static function from(
@@ -19,7 +21,9 @@ final class TeamStatisticsResponse
         int $xpThisWeek,
         CarbonInterface $weekStart,
         CarbonInterface $weekEnd,
-        Collection $weeklyRows
+        Collection $weeklyRows,
+        Collection $currentWeekByDay,
+        Collection $weeklyTotals
     ): array {
         $rate = UserXpService::WORKOUT_XP;
 
@@ -42,6 +46,8 @@ final class TeamStatisticsResponse
                     'xp_this_week' => $w * $rate,
                 ];
             })->values()->all(),
+            'current_week_by_day' => $currentWeekByDay->values()->all(),
+            'last_12_weeks' => $weeklyTotals->values()->all(),
         ];
     }
 }
