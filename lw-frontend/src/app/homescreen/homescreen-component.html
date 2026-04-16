@@ -1,146 +1,132 @@
 <div class="container mx-auto max-w-2xl px-4 py-8">
-
-  <div class="workouts mb-10">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold text-black">Your last workout</h2>
+  <div class="mb-4 flex items-center justify-end">
+    <div class="inline-flex gap-1 rounded-lg bg-gray-100 p-1">
       <button
-        (click)="logWorkout()"
-        [disabled]="hasLoggedToday()"
-        class="btn-primary px-4 py-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+        type="button"
+        (click)="setActiveTab('home')"
+        class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+        [class.bg-white]="activeTab() === 'home'"
+        [class.text-black]="activeTab() === 'home'"
+        [class.shadow-sm]="activeTab() === 'home'"
+        [class.text-gray-600]="activeTab() !== 'home'"
       >
-        {{ hasLoggedToday() ? 'Already logged today' : 'Log a workout' }}
+        Home
+      </button>
+      <button
+        type="button"
+        (click)="setActiveTab('notifications')"
+        class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors inline-flex items-center gap-1.5"
+        [class.bg-white]="activeTab() === 'notifications'"
+        [class.text-black]="activeTab() === 'notifications'"
+        [class.shadow-sm]="activeTab() === 'notifications'"
+        [class.text-gray-600]="activeTab() !== 'notifications'"
+      >
+        Notifications
+        @if (notificationUnreadCount() > 0) {
+          <span class="inline-flex min-w-4 h-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+            {{ notificationUnreadCount() }}
+          </span>
+        }
       </button>
     </div>
-    <div
-      class="mb-6 p-4 rounded-md border border-gray-150 bg-gray-50 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
-    >
-      @if (!timeSinceLastWorkout().hasWorkout) {
-      <div
-        class="flex items-center justify-center py-6 rounded-lg bg-gray-100 border border-gray-200"
-      >
-        <span class="text-gray-600 font-medium"
-          >No workouts yet — start your journey!</span
-        >
-      </div>
-      } @else {
+  </div>
 
-      <div class="grid grid-cols-4 gap-3 mb-4">
-        <div
-          class="bg-white flex flex-col items-center justify-center border border-gray-200 rounded-lg px-2 py-6 shadow-sm"
-        >
-          <div class="text-2xl font-bold text-black">
-            {{ timeSinceLastWorkout().days }}
-          </div>
-          <div class="text-xs uppercase tracking-wider text-gray-500 mt-1">
-            Days
-          </div>
-        </div>
-        <div
-          class="bg-white flex flex-col items-center justify-center border border-gray-200 rounded-lg px-2 py-6 shadow-sm"
-        >
-          <div class="text-2xl font-bold text-black">
-            {{ timeSinceLastWorkout().hours | number:'2.0-0' }}
-          </div>
-          <div class="text-xs uppercase tracking-wider text-gray-500 mt-1">
-            Hours
-          </div>
-        </div>
-        <div
-          class="bg-white flex flex-col items-center justify-center border border-gray-200 rounded-lg px-2 py-6 shadow-sm"
-        >
-          <div class="text-2xl font-bold text-black">
-            {{ timeSinceLastWorkout().minutes | number:'2.0-0' }}
-          </div>
-          <div class="text-xs uppercase tracking-wider text-gray-500 mt-1">
-            Minutes
-          </div>
-        </div>
-        <div
-          class="bg-white flex flex-col items-center justify-center border border-gray-200 rounded-lg px-2 py-6 shadow-sm"
-        >
-          <div class="text-2xl font-bold text-black">
-            {{ timeSinceLastWorkout().seconds | number:'2.0-0' }}
-          </div>
-          <div class="text-xs uppercase tracking-wider text-gray-500 mt-1">
-            Seconds
-          </div>
-        </div>
-      </div>
+  @if (activeTab() === 'home') {
+  <div class="workouts mb-10">
+    <div class="mb-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-violet-700">Your week</p>
+          <h2 class="mt-1 text-lg font-semibold text-black">Keep the momentum going</h2>
 
-      @if (currentStreak() > 0 || longestStreak() > 0) {
-      <div class="flex items-center justify-center">
-        <div
-          class="flex flex-col items-center justify-center p-2 bg-slate-800 rounded-lg w-fit shadow-sm text-balloon"
-        >
-          <p class="text-xs font-medium text-white text-center">
-            Hit your weekly goal to keep your streak!
-          </p>
         </div>
-      </div>
-      <div class="flex items-center justify-center gap-3 mt-3 flex-wrap">
         @if (currentStreak() > 0) {
-        <span
-          class="inline-flex items-center gap-1.5 text-xs font-semibold text-black"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="w-4 h-4 text-amber-500"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.177 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248Z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          {{ currentStreak() }} {{ currentStreak() === 1 ? 'week' : 'weeks' }}
-        </span>
-        } @if (longestStreak() > 0) {
-        <span class="text-xs text-gray-500"
-          >Longest: {{ longestStreak() }} {{ longestStreak() === 1 ? 'week' :
-          'weeks' }}</span
-        >
+          <span class="inline-flex items-center justify-center gap-1 self-center sm:self-auto rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800 text-center">
+            <span class="sm:hidden">{{ currentStreak() }} 🔥</span>
+            <span class="hidden sm:inline">🔥 {{ currentStreak() }} {{ currentStreak() === 1 ? 'week' : 'weeks' }} streak</span>
+          </span>
+        } @else {
+          <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-gray-700">
+            Start your first streak
+          </span>
         }
       </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+          <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">XP this week</p>
+          <p class="mt-1 text-2xl font-bold text-violet-900 tabular-nums">+{{ userLeaderboardRow()?.xp_this_week ?? 0 }}</p>
+          <p class="mt-1 text-xs text-gray-600">From your logged workouts</p>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+          <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">Your team</p>
+          @if (myTeam(); as team) {
+            <a [routerLink]="['/teams', team.id]" class="mt-1 flex items-center gap-2 min-w-0 group">
+              @if (team.logo_url) {
+                <img [src]="team.logo_url" alt="" class="h-8 w-8 shrink-0 rounded-lg border border-gray-200 object-cover" />
+              } @else {
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600">
+                  {{ team.name.charAt(0).toUpperCase() }}
+                </div>
+              }
+              <span class="truncate text-sm font-semibold text-black group-hover:underline">{{ team.name }}</span>
+            </a>
+            <p class="mt-1 text-xs text-gray-600">Rank #{{ myTeamRank() ?? '—' }} in teams</p>
+          } @else {
+            <p class="mt-2 text-sm font-medium text-gray-700">No team yet</p>
+            <a routerLink="/teams" class="mt-1 inline-block text-xs font-medium text-black underline">Join a team</a>
+          }
+        </div>
+
+        <div class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+          <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">Total workouts</p>
+          <p class="mt-1 text-2xl font-bold text-black tabular-nums">{{ totalWorkouts() }}</p>
+          <p class="mt-1 text-xs text-gray-600">All-time sessions </p>
+        </div>
+      </div>
+    </div>
+
+    <button
+      (click)="logWorkout()"
+      [disabled]="hasLoggedToday()"
+      class="btn-primary mb-5 w-full px-4 py-3 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      {{ hasLoggedToday() ? 'Already logged today' : 'Log workout' }}
+    </button>
+
+    <div class="mb-6 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+      <div class="mb-2 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-black">Since your last workout</h3>
+        @if (timeSinceLastWorkout().hasWorkout) {
+          <span class="text-[11px] text-gray-500">Stay consistent</span>
+        }
+      </div>
+      @if (!timeSinceLastWorkout().hasWorkout) {
+        <p class="rounded-md border border-gray-200 bg-gray-50 px-3 py-4 text-center text-sm font-medium text-gray-600">
+          No workouts yet — start your journey!
+        </p>
       } @else {
-      <div class="flex items-center justify-center">
-        <div
-          class="flex flex-col items-center justify-center p-2 bg-slate-800 rounded-lg w-fit shadow-sm text-balloon"
-        >
-          <p class="text-xs font-medium text-white text-center">
-            Time to start your first streak!
-          </p>
+        <div class="grid grid-cols-4 gap-2">
+          <div class="rounded-md border border-gray-200 bg-gray-50 px-2 py-3 text-center">
+            <p class="text-lg font-bold text-black tabular-nums">{{ timeSinceLastWorkout().days }}</p>
+            <p class="text-[10px] uppercase tracking-wide text-gray-500">Days</p>
+          </div>
+          <div class="rounded-md border border-gray-200 bg-gray-50 px-2 py-3 text-center">
+            <p class="text-lg font-bold text-black tabular-nums">{{ timeSinceLastWorkout().hours | number:'2.0-0' }}</p>
+            <p class="text-[10px] uppercase tracking-wide text-gray-500">Hours</p>
+          </div>
+          <div class="rounded-md border border-gray-200 bg-gray-50 px-2 py-3 text-center">
+            <p class="text-lg font-bold text-black tabular-nums">{{ timeSinceLastWorkout().minutes | number:'2.0-0' }}</p>
+            <p class="text-[10px] uppercase tracking-wide text-gray-500">Minutes</p>
+          </div>
+          <div class="rounded-md border border-gray-200 bg-gray-50 px-2 py-3 text-center">
+            <p class="text-lg font-bold text-black tabular-nums">{{ timeSinceLastWorkout().seconds | number:'2.0-0' }}</p>
+            <p class="text-[10px] uppercase tracking-wide text-gray-500">Seconds</p>
+          </div>
         </div>
-      </div>
-      } }
+      }
     </div>
-    <!-- @if (weeklyProgress(); as wp) {
-    <div class="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base font-semibold text-black">This week</h2>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            class="h-full rounded-full transition-all"
-            [class.bg-green-500]="wp.workouts_this_week >= wp.goal"
-            [class.bg-amber-500]="wp.workouts_this_week < wp.goal"
-            [style.width.%]="wp.goal > 0 ? Math.min(100, (wp.workouts_this_week / wp.goal) * 100) : 0"
-          ></div>
-        </div>
-        <span class="text-sm font-medium text-black shrink-0"
-          >{{ wp.workouts_this_week }} / {{ wp.goal }}</span
-        >
-      </div>
-      <p class="text-xs text-gray-500 mt-1">
-        {{ wp.workouts_this_week >= wp.goal ? 'Goal reached! Rest days are
-        fine.' : (wp.goal - wp.workouts_this_week) + ' more to hit your goal.'
-        }}
-      </p>
-    </div>
-    } -->
 
     <div *ngIf="loading()" class="text-sm text-gray-500 py-4">
       Loading workouts...
@@ -151,68 +137,8 @@
     >
       {{ error() }}
     </div>
-    <div class="flex flex-col justify-between gap-1 mb-4">
-      <h3 class="text-lg font-semibold text-black">Recent workouts</h3>
-      <span class="text-xs font-normal text-gray-500"
-        >Your workout history</span
-      >
-    </div>
-
-    <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
-      @if (!loading() && workouts().length === 0 && !error()) {
-      <div class="py-8 text-center text-sm text-gray-500">
-        No workouts found.
-      </div>
-      } @else {
-      <div
-        *ngFor="let workout of workouts().slice(0, 5); let last = last"
-        class="flex items-center justify-between py-3 px-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-        [class.border-b-0]="last"
-      >
-        <div>
-          <p class="text-sm font-medium text-black">
-            {{ workout.workout_datetime | date:'medium' }}
-          </p>
-          <p class="text-xs text-gray-500 mt-0.5">
-            Source: {{ workout.source }}
-          </p>
-        </div>
-      </div>
-      }
-    </div>
+    
   </div>
-  @if (myTeam(); as team) {
-    <a
-      [routerLink]="['/teams', team.id]"
-      class="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:bg-gray-50 focus-ring"
-    >
-      <span
-        class="inline-block shrink-0 rounded-full ring-1 ring-black/10"
-        [style.width.px]="10"
-        [style.height.px]="10"
-        [style.background]="presetGradient(team.gradient_preset)"
-        aria-hidden="true"
-      ></span>
-      @if (team.logo_url) {
-        <img [src]="team.logo_url" alt="" class="h-11 w-11 shrink-0 rounded-lg border border-gray-200 object-cover" />
-      } @else {
-        <div
-          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-sm font-semibold text-gray-600"
-          aria-hidden="true"
-        >
-          {{ team.name.charAt(0).toUpperCase() }}
-        </div>
-      }
-      <div class="min-w-0 flex-1">
-        <p class="text-xs font-medium text-gray-500">Your team</p>
-        <p class="truncate text-sm font-semibold text-black">{{ team.name }}</p>
-      </div>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true">
-        <path d="M9 18l6-6-6-6" />
-      </svg>
-    </a>
-  }
-
   <div class="mb-8 rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
     <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
       <div class="flex items-center gap-2">
@@ -255,94 +181,141 @@
   </div>
 
   <div class="leaderboard">
-    <div class="flex flex-col justify-between gap-1 mb-4">
+    <div class="flex flex-col justify-between gap-1 mb-3">
       <h2 class="text-xl font-semibold text-black">Leaderboard</h2>
-      <span class="text-xs font-normal text-gray-500">Top by total XP</span>
+      <span class="text-xs font-normal text-gray-500">Users and teams ranked by activity</span>
     </div>
 
-    <div
-      *ngIf="leaderboard().length === 0 && !loading()"
-      class="text-xs text-gray-500 py-6"
-    >
-      No leaderboard data available.
+    <div class="flex flex-wrap gap-1 p-1 rounded-lg bg-gray-100 mb-4" role="tablist" aria-label="Leaderboard type">
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeLeaderboardTab() === 'teams'"
+        (click)="setLeaderboardTab('teams')"
+        class="rounded-md px-3 py-2 text-sm font-medium transition-colors"
+        [class.bg-white]="activeLeaderboardTab() === 'teams'"
+        [class.text-black]="activeLeaderboardTab() === 'teams'"
+        [class.shadow-sm]="activeLeaderboardTab() === 'teams'"
+        [class.text-gray-600]="activeLeaderboardTab() !== 'teams'"
+      >
+        Teams
+      </button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="activeLeaderboardTab() === 'users'"
+        (click)="setLeaderboardTab('users')"
+        class="rounded-md px-3 py-2 text-sm font-medium transition-colors"
+        [class.bg-white]="activeLeaderboardTab() === 'users'"
+        [class.text-black]="activeLeaderboardTab() === 'users'"
+        [class.shadow-sm]="activeLeaderboardTab() === 'users'"
+        [class.text-gray-600]="activeLeaderboardTab() !== 'users'"
+      >
+        Users
+      </button>
     </div>
 
-    <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
-      <table class="w-full text-xs">
-        <thead>
-          <tr class="border-b border-gray-200 bg-gray-50">
-            <th class="text-left py-2 px-2 font-medium text-gray-500">#</th>
-            <th class="text-left py-2 px-3 font-medium text-gray-500">User</th>
-            <th scope="col" class="py-2 px-2 font-medium text-gray-500 text-right align-middle">XP</th>
-            <th class="text-center py-2 px-2 font-medium text-gray-500">
-              Streak
-            </th>
-            <th class="text-right py-2 px-3 font-medium text-gray-500">
-              Last workout
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let item of leaderboard().slice(0, 6); let i = index"
-            class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
-          >
-            <td class="py-2 px-2 text-gray-400 font-medium">{{ i + 1 }}</td>
-            <td class="py-2 px-3">
-              <a [routerLink]="['/users', item.id]" class="text-black font-medium hover:underline">{{ item.username }}</a>
-            </td>
-            <td class="py-2 px-2 align-middle">
-              <div class="flex flex-row items-center justify-end gap-1.5">
-                <span class="font-semibold text-violet-900 tabular-nums leading-none">{{ item.xp }}</span>
-                <span class="text-[10px] font-semibold tabular-nums text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded leading-none shrink-0">+{{ item.xp_this_week }}</span>
-              </div>
-            </td>
-            @if (item.current_streak > 0) {
-            <td class="py-2 px-2 text-center">
-              <span
-                class="inline-flex items-center justify-center gap-1 text-gray-600 font-medium"
+    @if (activeLeaderboardTab() === 'users') {
+      <div *ngIf="leaderboard().length === 0 && !loading()" class="text-xs text-gray-500 py-6">
+        No leaderboard data available.
+      </div>
+      <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-gray-200 bg-gray-50">
+              <th class="text-left py-2 px-2 font-medium text-gray-500">#</th>
+              <th class="text-left py-2 px-3 font-medium text-gray-500">User</th>
+              <th scope="col" class="py-2 px-2 font-medium text-gray-500 text-right align-middle">XP</th>
+              <th class="text-center py-2 px-2 font-medium text-gray-500">Streak</th>
+              <th class="text-right py-2 px-3 font-medium text-gray-500">Last workout</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of displayedUserLeaderboard(); track entry.row.id) {
+              <tr
+                class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
+                [class.bg-violet-50]="entry.isCurrentUser"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  class="w-3.5 h-3.5 text-amber-500 shrink-0"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.177 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248Z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                {{ item.current_streak }} {{ item.current_streak === 1 ? 'week'
-                : 'weeks' }}
-              </span>
-            </td>
-            } @if (item.current_streak === 0) {
-            <td class="py-2 px-2 text-center">
-              <span
-                class="inline-flex items-center justify-center gap-1 text-gray-600 font-medium"
-              >
-                No streak
-              </span>
-            </td>
+                <td class="py-2 px-2 text-gray-400 font-medium">{{ entry.rank }}</td>
+                <td class="py-2 px-3">
+                  <a [routerLink]="['/users', entry.row.id]" class="text-black font-medium hover:underline">{{ entry.row.username }}</a>
+                  
+                </td>
+                <td class="py-2 px-2 align-middle">
+                  <div class="flex flex-row items-center justify-end gap-1.5">
+                    <span class="font-semibold text-violet-900 tabular-nums leading-none">{{ entry.row.xp }}</span>
+                    <span class="text-[10px] font-semibold tabular-nums text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded leading-none shrink-0">+{{ entry.row.xp_this_week }}</span>
+                  </div>
+                </td>
+                @if (entry.row.current_streak > 0) {
+                  <td class="py-2 px-2 text-center">
+                    <span class="inline-flex items-center justify-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                      <span class="sm:hidden">{{ entry.row.current_streak }} 🔥</span>
+                      <span class="hidden sm:inline">🔥 {{ entry.row.current_streak }} {{ entry.row.current_streak === 1 ? 'week' : 'weeks' }} streak</span>
+                    </span>
+                  </td>
+                } @else {
+                  <td class="py-2 px-2 text-center"><span class="inline-flex items-center justify-center gap-1 text-gray-600 font-medium">-</span></td>
+                }
+                <td class="py-2 px-3 text-right text-gray-500">
+                  {{ entry.row.last_workout ? (entry.row.last_workout | date:'dd MMM, HH:mm') : '—' }}
+                </td>
+              </tr>
             }
-            <td class="py-2 px-3 text-right text-gray-500">
-              {{ item.last_workout ? (item.last_workout | date:'medium') : '—'
-              }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <button
-      (click)="logWorkout()"
-      [disabled]="hasLoggedToday()"
-      class="btn-primary mt-4 w-full px-4 py-3 disabled:opacity-60 disabled:cursor-not-allowed"
-    >
-      {{ hasLoggedToday() ? 'Already logged today' : 'Log Workout' }}
-    </button>
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (activeLeaderboardTab() === 'teams') {
+      @if (teamsLoading()) {
+        <p class="text-sm text-gray-500 py-6">Loading teams…</p>
+      } @else if (teamsError()) {
+        <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ teamsError() }}</p>
+      } @else if (teamsLeaderboard().length === 0) {
+        <p class="text-xs text-gray-500 py-6">No teams yet.</p>
+      } @else {
+        <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-gray-200 bg-gray-50">
+                <th class="text-left py-2 px-2 font-medium text-gray-500 w-10">#</th>
+                <th class="text-left py-2 px-3 font-medium text-gray-500">Team</th>
+                <th class="py-2 px-2 font-medium text-gray-500 text-right">XP</th>
+                <th class="text-right py-2 px-3 font-medium text-gray-500">Workouts</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of displayedTeamsLeaderboard(); track entry.row.id) {
+                <tr class="border-b border-gray-100 last:border-b-0 hover:bg-gray-50" [class.bg-violet-50]="entry.isCurrentTeam">
+                  <td class="py-2.5 px-2 text-gray-400 font-medium">{{ entry.rank }}</td>
+                  <td class="py-2.5 px-3">
+                    <a [routerLink]="['/teams', entry.row.id]" class="flex items-center gap-2 min-w-0 group">
+                      @if (entry.row.logo_url) {
+                        <img [src]="entry.row.logo_url" alt="" class="h-8 w-8 rounded-lg object-cover border border-gray-200 shrink-0" />
+                      } @else {
+                        <div class="h-8 w-8 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center text-xs font-semibold text-gray-600 shrink-0">
+                          {{ entry.row.name.charAt(0).toUpperCase() }}
+                        </div>
+                      }
+                      <span class="font-medium text-black truncate group-hover:underline">{{ entry.row.name }}</span>
+                    </a>
+                  </td>
+                  <td class="py-2.5 px-2 align-middle">
+                    <div class="flex flex-row items-center justify-end gap-1.5">
+                      <span class="font-semibold text-violet-900 tabular-nums leading-none">{{ entry.row.total_xp }}</span>
+                      <span class="text-[10px] font-semibold tabular-nums text-violet-800 bg-violet-100 px-1.5 py-0.5 rounded leading-none shrink-0">+{{ entry.row.xp_this_week }}</span>
+                    </div>
+                  </td>
+                  <td class="py-2.5 px-3 text-right font-semibold text-black tabular-nums">{{ entry.row.total_workouts }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+
     @if (workoutLoggedFailed()) {
     <p class="mt-3 text-sm font-medium text-gray-700">
       {{ workoutLoggedErrorMsg() || 'Failed to log workout. Please try again.'
@@ -350,6 +323,82 @@
     </p>
     }
   </div>
+  } @else {
+    <div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div class="border-b border-gray-100 px-4 py-3">
+        <h2 class="text-sm font-semibold text-black">Notifications</h2>
+        <p class="text-xs text-gray-500">Updates for your team and weekly progress</p>
+      </div>
+
+      @if (notificationsLoading()) {
+        <p class="px-4 py-6 text-sm text-gray-500">Loading notifications...</p>
+      } @else if (notifications().length === 0) {
+        <p class="px-4 py-6 text-sm text-gray-500">No notifications yet.</p>
+      } @else {
+        <div class="divide-y divide-gray-100">
+          @for (notification of notifications(); track notification.id) {
+            <div class="px-4 py-3" [class.bg-violet-50]="isNotificationUnread(notification.id)">
+              <div class="flex items-start gap-3">
+                <span
+                  class="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[10px] font-semibold"
+                  [class.bg-violet-100]="notification.type === 'join_request_new' || notification.type === 'team_challenge_completed'"
+                  [class.text-violet-800]="notification.type === 'join_request_new' || notification.type === 'team_challenge_completed'"
+                  [class.bg-sky-100]="notification.type === 'join_request_approved' || notification.type === 'join_request_rejected'"
+                  [class.text-sky-800]="notification.type === 'join_request_approved' || notification.type === 'join_request_rejected'"
+                  [class.bg-emerald-100]="notification.type === 'user_xp_up' || notification.type === 'team_xp_up'"
+                  [class.text-emerald-800]="notification.type === 'user_xp_up' || notification.type === 'team_xp_up'"
+                  [class.bg-rose-100]="notification.type === 'user_xp_down' || notification.type === 'team_xp_down'"
+                  [class.text-rose-800]="notification.type === 'user_xp_down' || notification.type === 'team_xp_down'"
+                >
+                  @if (notification.type === 'join_request_new') { JR }
+                  @if (notification.type === 'join_request_approved' || notification.type === 'join_request_rejected') { OK }
+                  @if (notification.type === 'team_challenge_completed') { XP }
+                  @if (notification.type === 'user_xp_up' || notification.type === 'team_xp_up') { UP }
+                  @if (notification.type === 'user_xp_down' || notification.type === 'team_xp_down') { DN }
+                </span>
+                <div class="min-w-0 flex-1">
+                  @if (isNotificationUnread(notification.id)) {
+                    <span class="mb-1 inline-flex items-center rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">New</span>
+                  } @else {
+                    <span class="mb-1 inline-flex items-center rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold text-gray-500">Read</span>
+                  }
+                  @if (notification.actionPath) {
+                    <a [routerLink]="notification.actionPath" [queryParams]="notification.actionTab ? { tab: notification.actionTab } : null" class="text-sm font-semibold text-black hover:underline">
+                      {{ notification.title }}
+                    </a>
+                  } @else {
+                    <p class="text-sm font-semibold text-black">{{ notification.title }}</p>
+                  }
+                  <p class="mt-0.5 text-xs text-gray-600">{{ notification.body }}</p>
+                  @if (notification.createdAt) {
+                    <p class="mt-1 text-[11px] text-gray-500">{{ notification.createdAt | date:'dd MMM, HH:mm' }}</p>
+                  }
+                </div>
+                @if (isNotificationUnread(notification.id)) {
+                  <button
+                    type="button"
+                    (click)="markNotificationRead(notification.id)"
+                    [disabled]="markingReadNotificationIds()[notification.id]"
+                    class="rounded-md border border-violet-200 px-2 py-1 text-[11px] font-medium text-violet-700 hover:bg-violet-50 disabled:opacity-50"
+                  >
+                    Mark read
+                  </button>
+                }
+                <button
+                  type="button"
+                  (click)="dismissNotification(notification.id)"
+                  [disabled]="dismissingNotificationIds()[notification.id]"
+                  class="rounded-md border border-gray-200 px-2 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
 </div>
 
 <app-celebration-overlay

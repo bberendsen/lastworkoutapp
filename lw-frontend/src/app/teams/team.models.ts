@@ -34,6 +34,7 @@ export interface TeamSummary {
   is_member: boolean;
   is_creator: boolean;
   has_pending_request?: boolean;
+  pending_join_requests_count?: number;
 }
 
 export interface TeamMember {

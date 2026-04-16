@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
@@ -55,6 +56,21 @@ class User extends Authenticatable
         return $this->belongsToMany(Team::class, 'team_user')
             ->withPivot('participates_in_challenges')
             ->withTimestamps();
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(UserNotification::class);
+    }
+
+    public function notificationDismissals(): HasMany
+    {
+        return $this->hasMany(UserNotificationDismissal::class);
+    }
+
+    public function notificationReads(): HasMany
+    {
+        return $this->hasMany(UserNotificationRead::class);
     }
 
     protected static function booted()

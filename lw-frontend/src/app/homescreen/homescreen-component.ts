@@ -6,8 +6,9 @@ import { FormsModule } from '@angular/forms';
 import { LeaderboardWithStreak, StreakService } from '../services/streakService';
 import { CelebrationOverlayComponent, CelebrationType } from '../components/celebration-overlay/celebration-overlay.component';
 import { TeamService } from '../services/team.service';
-import type { TeamSummary } from '../teams/team.models';
+import type { TeamLeaderboardRow, TeamSummary } from '../teams/team.models';
 import { teamPresetLinearGradient } from '../teams/team.models';
+import { AppNotification, NotificationService } from '../services/notification.service';
 
 interface TimeSinceLastWorkoutDisplay {
   days: number;
@@ -15,6 +16,31 @@ interface TimeSinceLastWorkoutDisplay {
   minutes: number;
   seconds: number;
   hasWorkout: boolean;
+}
+
+type LeaderboardTab = 'users' | 'teams';
+type HomescreenTab = 'home' | 'notifications';
+interface DisplayUserLeaderboardRow {
+  row: LeaderboardWithStreak;
+  rank: number;
+  isCurrentUser: boolean;
+}
+
+interface DisplayTeamLeaderboardRow {
+  row: TeamLeaderboardRow;
+  rank: number;
+  isCurrentTeam: boolean;
+}
+
+interface HomescreenNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  createdAt: Date | null;
+  actionUrl: string | null;
+  actionPath: string | null;
+  actionTab: string | null;
 }
 @Component({
   standalone: true,
@@ -62,11 +88,103 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   readonly presetGradient = teamPresetLinearGradient;
   /** Team you’re a member of (one per account); null if none or load failed. */
   myTeam: WritableSignal<TeamSummary | null> = signal(null);
+  teamsLeaderboard: WritableSignal<TeamLeaderboardRow[]> = signal([]);
+  teamsLoading = signal(false);
+  teamsError = signal<string | null>(null);
+  activeLeaderboardTab = signal<LeaderboardTab>('users');
+  activeTab = signal<HomescreenTab>('home');
   liveFeedPreview: WritableSignal<LiveFeedItem[]> = signal([]);
+  notificationsApi = signal<AppNotification[]>([]);
+  notificationsLoading = signal(false);
+  notificationUnreadCount = signal(0);
+  dismissingNotificationIds = signal<Record<string, boolean>>({});
+  markingReadNotificationIds = signal<Record<string, boolean>>({});
+  totalWorkouts = computed(() => this.workouts().length);
+  userLeaderboardRow = computed(() => this.leaderboard().find((row) => row.id === this.userId) ?? null);
+  userRank = computed(() => {
+    if (!this.userId) return null;
+    const idx = this.leaderboard().findIndex((row) => row.id === this.userId);
+    return idx >= 0 ? idx + 1 : null;
+  });
+  myTeamLeaderboardRow = computed(() => {
+    const team = this.myTeam();
+    if (!team) return null;
+    return this.teamsLeaderboard().find((row) => row.id === team.id) ?? null;
+  });
+  myTeamRank = computed(() => {
+    const team = this.myTeam();
+    if (!team) return null;
+    const idx = this.teamsLeaderboard().findIndex((row) => row.id === team.id);
+    return idx >= 0 ? idx + 1 : null;
+  });
+  displayedUserLeaderboard = computed<DisplayUserLeaderboardRow[]>(() => {
+    const rows = this.leaderboard();
+    const topRows = rows.slice(0, 6).map((row, index) => ({
+      row,
+      rank: index + 1,
+      isCurrentUser: row.id === this.userId,
+    }));
+
+    const hasCurrentUserVisible = topRows.some((entry) => entry.isCurrentUser);
+    if (hasCurrentUserVisible || !this.userId) return topRows;
+
+    const userIndex = rows.findIndex((row) => row.id === this.userId);
+    if (userIndex === -1) return topRows;
+
+    return [
+      ...topRows,
+      {
+        row: rows[userIndex],
+        rank: userIndex + 1,
+        isCurrentUser: true,
+      },
+    ];
+  });
+  displayedTeamsLeaderboard = computed<DisplayTeamLeaderboardRow[]>(() => {
+    const rows = this.teamsLeaderboard();
+    const myTeamId = this.myTeam()?.id ?? null;
+    const topRows = rows.slice(0, 6).map((row, index) => ({
+      row,
+      rank: index + 1,
+      isCurrentTeam: myTeamId === row.id,
+    }));
+
+    if (!myTeamId || topRows.some((entry) => entry.isCurrentTeam)) return topRows;
+
+    const teamIndex = rows.findIndex((row) => row.id === myTeamId);
+    if (teamIndex === -1) return topRows;
+
+    return [
+      ...topRows,
+      {
+        row: rows[teamIndex],
+        rank: teamIndex + 1,
+        isCurrentTeam: true,
+      },
+    ];
+  });
+  notifications = computed<HomescreenNotification[]>(() =>
+    this.notificationsApi().map((item) => {
+      const actionUrl = item.action_url;
+      const [pathPart, queryPart] = actionUrl ? actionUrl.split('?') : [null, null];
+      const tab = queryPart?.startsWith('tab=') ? queryPart.replace('tab=', '') : null;
+      return {
+        id: item.id,
+        title: item.title,
+        body: item.body,
+        type: item.type,
+        createdAt: item.event_datetime ? new Date(item.event_datetime) : null,
+        actionUrl,
+        actionPath: pathPart,
+        actionTab: tab,
+      };
+    })
+  );
 
   constructor(
     private workoutService: WorkoutService,
-    private streakService: StreakService
+    private streakService: StreakService,
+    private notificationService: NotificationService
   ) {}
   
   ngOnInit(): void {
@@ -98,8 +216,10 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     }
 
     this.loadLeaderboard();
+    this.loadTeamsLeaderboard();
     this.loadCurrentStreak();
     this.loadLiveFeedPreview();
+    this.loadNotificationFeed();
   }
 
   ngOnDestroy(): void {
@@ -119,7 +239,9 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.loadWorkouts();
         this.loadLeaderboard();
+        this.loadTeamsLeaderboard();
         this.loadLiveFeedPreview();
+        this.loadNotificationFeed();
         this.streakService.getCurrentStreak(this.userId).subscribe({
           next: (res) => {
             this.currentStreak.set(res.current_streak);
@@ -195,10 +317,33 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadTeamsLeaderboard(): void {
+    this.teamsLoading.set(true);
+    this.teamsError.set(null);
+    this.teamService.getTeamsLeaderboard().subscribe({
+      next: (rows) => {
+        this.teamsLeaderboard.set(rows);
+        this.teamsLoading.set(false);
+      },
+      error: () => {
+        this.teamsError.set('Could not load teams.');
+        this.teamsLoading.set(false);
+      },
+    });
+  }
+
+  setLeaderboardTab(tab: LeaderboardTab): void {
+    this.activeLeaderboardTab.set(tab);
+  }
+
   private loadMyTeam(): void {
     this.teamService.listTeams().subscribe({
       next: (list) => {
-        this.myTeam.set(list.find((t) => t.is_member) ?? null);
+        const team = list.find((t) => t.is_member) ?? null;
+        this.myTeam.set(team);
+        if (team) {
+          this.loadMyTeamDetails(team.id);
+        }
       },
       error: () => {
         this.myTeam.set(null);
@@ -211,6 +356,99 @@ export class HomescreenComponent implements OnInit, OnDestroy {
       next: (res) => this.liveFeedPreview.set(res.items.slice(0, 3)),
       error: () => this.liveFeedPreview.set([]),
     });
+  }
+
+  private loadNotificationFeed(): void {
+    this.notificationsLoading.set(true);
+    this.notificationService.getNotifications().subscribe({
+      next: (res) => {
+        this.notificationsApi.set(res.items);
+        this.notificationUnreadCount.set(res.unreadCount);
+        this.notificationsLoading.set(false);
+      },
+      error: () => {
+        this.notificationsApi.set([]);
+        this.notificationUnreadCount.set(0);
+        this.notificationsLoading.set(false);
+      },
+    });
+  }
+
+  private loadMyTeamDetails(teamId: string): void {
+    this.teamService.getTeam(teamId).subscribe({
+      next: (teamDetail) => {
+        this.myTeam.update((team) => {
+          if (!team) return team;
+          return {
+            ...team,
+            pending_join_requests_count: teamDetail.pending_join_requests_count,
+            has_pending_request: teamDetail.has_pending_request,
+          };
+        });
+      },
+      error: () => {
+        // Keep summary data only when detail fetch fails.
+      },
+    });
+  }
+
+  setActiveTab(tab: HomescreenTab): void {
+    this.activeTab.set(tab);
+  }
+
+  dismissNotification(notificationId: string): void {
+    this.dismissingNotificationIds.update((curr) => ({ ...curr, [notificationId]: true }));
+    this.notificationService.dismissNotification(notificationId).subscribe({
+      next: () => {
+        const dismissedUnread = this.notificationsApi().find((item) => item.id === notificationId)?.is_unread;
+        this.notificationsApi.update((items) => items.filter((item) => item.id !== notificationId));
+        if (dismissedUnread) {
+          this.notificationUnreadCount.update((count) => Math.max(0, count - 1));
+        }
+        this.dismissingNotificationIds.update((curr) => {
+          const next = { ...curr };
+          delete next[notificationId];
+          return next;
+        });
+      },
+      error: () => {
+        this.dismissingNotificationIds.update((curr) => {
+          const next = { ...curr };
+          delete next[notificationId];
+          return next;
+        });
+      },
+    });
+  }
+
+  markNotificationRead(notificationId: string): void {
+    const notification = this.notificationsApi().find((item) => item.id === notificationId);
+    if (!notification || !notification.is_unread) return;
+    this.markingReadNotificationIds.update((curr) => ({ ...curr, [notificationId]: true }));
+    this.notificationService.markNotificationRead(notificationId).subscribe({
+      next: () => {
+        this.notificationsApi.update((items) =>
+          items.map((item) => (item.id === notificationId ? { ...item, is_unread: false } : item))
+        );
+        this.notificationUnreadCount.update((count) => Math.max(0, count - 1));
+        this.markingReadNotificationIds.update((curr) => {
+          const next = { ...curr };
+          delete next[notificationId];
+          return next;
+        });
+      },
+      error: () => {
+        this.markingReadNotificationIds.update((curr) => {
+          const next = { ...curr };
+          delete next[notificationId];
+          return next;
+        });
+      },
+    });
+  }
+
+  isNotificationUnread(notificationId: string): boolean {
+    return this.notificationsApi().some((item) => item.id === notificationId && item.is_unread);
   }
 
   loadCurrentStreak(): void {

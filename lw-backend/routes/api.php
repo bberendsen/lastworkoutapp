@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ScoreController;
 use App\Http\Controllers\StreakController;
 use App\Http\Controllers\TeamChallengeController;
@@ -32,6 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/workouts/feed', [WorkoutController::class, 'feed']);
     Route::get('/workouts/latest/{userId}', [WorkoutController::class, 'latest']);
     Route::get('/workouts/{userId}', [WorkoutController::class, 'byUser']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::delete('/notifications/{notificationKey}', [NotificationController::class, 'dismiss']);
+    Route::post('/notifications/{notificationKey}/read', [NotificationController::class, 'markRead']);
     Route::post('/scores/{userId}', [ScoreController::class, 'store']);
     Route::get('/scores/{userId}', [ScoreController::class, 'show']);
     Route::get('/streak/leaderboard', [StreakController::class, 'leaderboard']);

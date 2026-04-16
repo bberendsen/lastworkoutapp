@@ -125,6 +125,10 @@ export class TeamDetailComponent implements OnInit {
       void this.router.navigate(['/teams']);
       return;
     }
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam === 'overview' || tabParam === 'members' || tabParam === 'statistics' || tabParam === 'challenges' || tabParam === 'requests') {
+      this.activeTab.set(tabParam);
+    }
     this.fetch(id);
   }
 
