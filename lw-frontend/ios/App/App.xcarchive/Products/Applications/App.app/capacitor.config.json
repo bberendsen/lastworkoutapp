@@ -1,0 +1,9 @@
+{
+	"appId": "com.bryanberendsen.lastworkout",
+	"appName": "Last Workout app",
+	"webDir": "dist/lw-frontend/browser",
+	"packageClassList": [
+		"AppPlugin",
+		"HealthPlugin"
+	]
+}
