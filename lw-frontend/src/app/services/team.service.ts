@@ -17,7 +17,7 @@ import type {
 })
 export class TeamService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api';
 
   listTeams(): Observable<TeamSummary[]> {
     return this.http.get<{ teams?: TeamSummary[] }>(`${this.apiUrl}/teams`).pipe(

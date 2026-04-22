@@ -20,7 +20,7 @@ export interface PasswordResetLoginResponse {
 })
 export class PasswordResetService {
   private http = inject(HttpClient);
-  private readonly base = 'http://127.0.0.1:8000/api/password';
+  private readonly base = 'https://lastworkoutapp.onrender.com/api/password';
 
   sendCode(email: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.base}/send-code`, { email });

@@ -45,7 +45,7 @@ export interface UserProfilePayload {
 })
 export class UserService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://127.0.0.1:8000/api';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api';
 
   getUser(id: string): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`);

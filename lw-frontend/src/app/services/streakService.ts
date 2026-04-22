@@ -31,7 +31,7 @@ export interface LeaderboardWithStreak {
   providedIn: 'root'
 })
 export class StreakService {
-  private apiUrl = 'http://127.0.0.1:8000/api/streak';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api/streak';
 
   constructor(private http: HttpClient) {}
 

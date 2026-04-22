@@ -41,8 +41,8 @@ export class OnboardingComponent {
   private router = inject(Router);
   private http: HttpClient = inject(HttpClient);
   private auth = inject(AuthService);
-  private apiUrl = 'http://127.0.0.1:8000/api/users';
-  private loginUrl = 'http://127.0.0.1:8000/api/login';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api/users';
+  private loginUrl = 'https://lastworkoutapp.onrender.com/api/login';
 
   public formSubmitting: WritableSignal<boolean> = signal(false);
   public formSubmitted: WritableSignal<boolean> = signal(false);

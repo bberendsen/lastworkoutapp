@@ -13,7 +13,7 @@ export interface Leaderboard {
 })
 
 export class LeaderboardService {
-  private apiUrl = 'http://127.0.0.1:8000/api/workouts/leaderboard';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api/workouts/leaderboard';
 
   constructor(private http: HttpClient) { }
 

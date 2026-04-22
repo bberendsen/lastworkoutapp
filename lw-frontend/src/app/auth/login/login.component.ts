@@ -29,7 +29,7 @@ export class LoginComponent {
   private router = inject(Router);
   private auth = inject(AuthService);
 
-  private apiUrl = 'http://127.0.0.1:8000/api/login';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api/login';
 
   formSubmitting = false;
   formSubmitted = false;

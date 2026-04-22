@@ -48,7 +48,7 @@ export interface LiveFeedResponse {
   providedIn: 'root'
 })
 export class WorkoutService {
-  private apiUrl = 'http://127.0.0.1:8000/api/workouts/';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api/workouts/';
 
   constructor(private http: HttpClient) { }
 

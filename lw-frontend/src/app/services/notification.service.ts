@@ -22,7 +22,7 @@ interface NotificationsResponse {
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = 'http://127.0.0.1:8000/api/notifications';
+  private apiUrl = 'https://lastworkoutapp.onrender.com/api/notifications';
 
   constructor(private http: HttpClient) {}
 
