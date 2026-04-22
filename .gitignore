@@ -57,3 +57,4 @@ lw-frontend/ios/App/DerivedData/
 lw-frontend/ios/App/*.xcworkspace/xcuserdata/
 lw-frontend/ios/App/*.xcodeproj/xcuserdata/
 lw-frontend/ios/App/*.xcodeproj/project.xcworkspace/xcuserdata/
+.vercel
