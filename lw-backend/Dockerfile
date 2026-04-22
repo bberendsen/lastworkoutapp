@@ -13,12 +13,11 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Install PHP dependencies first for better layer caching.
-COPY composer.json composer.lock ./
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-
-# Copy the rest of the application.
+# Copy the application before running Composer scripts (artisan is required).
 COPY . .
+
+# Install PHP dependencies.
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 EXPOSE 10000
 
