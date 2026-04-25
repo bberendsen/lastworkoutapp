@@ -5,7 +5,6 @@ import { StatisticsComponent } from './statistics/statistics.component';
 import { SettingsComponent } from './settings/settings.component';
 import { AccountComponent } from './settings/account/account.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
-import { OnboardingHealthComponent } from './onboarding/onboarding-health/onboarding-health.component';
 import { OnboardingTeamComponent } from './onboarding/onboarding-team/onboarding-team.component';
 import { TeamsListComponent } from './teams/teams-list.component';
 import { TeamDetailComponent } from './teams/team-detail.component';
@@ -121,11 +120,5 @@ export const routes: Routes = [
     component: OnboardingTeamComponent,
     canActivate: [authGuard],
     pathMatch: 'full',
-  },
-  {
-    path: 'onboarding/health',
-    component: OnboardingHealthComponent,
-    canActivate: [authGuard],
-    pathMatch: 'full'
   },
 ];

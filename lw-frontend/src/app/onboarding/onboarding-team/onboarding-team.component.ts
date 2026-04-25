@@ -69,19 +69,19 @@ export class OnboardingTeamComponent implements OnInit {
   continueWithSelection(): void {
     const id = this.selectedId();
     if (!id) {
-      void this.router.navigate(['/onboarding/health']);
+      void this.router.navigate(['/homescreen']);
       return;
     }
     const team = this.teams().find((t) => t.id === id);
     if (team?.is_member || team?.has_pending_request) {
-      void this.router.navigate(['/onboarding/health']);
+      void this.router.navigate(['/homescreen']);
       return;
     }
     this.busy.set(true);
     this.actionError.set(null);
     this.teamService.requestToJoin(id).subscribe({
       next: () => {
-        void this.router.navigate(['/onboarding/health']);
+        void this.router.navigate(['/homescreen']);
       },
       error: (err: { error?: { message?: string } }) => {
         this.actionError.set(err?.error?.message ?? 'Could not join team.');
@@ -91,6 +91,11 @@ export class OnboardingTeamComponent implements OnInit {
   }
 
   skip(): void {
-    void this.router.navigate(['/onboarding/health']);
+    void this.router.navigate(['/homescreen']);
+  }
+
+  goToCreateTeam(): void {
+    if (this.memberTeam()) return;
+    void this.router.navigate(['/teams/create']);
   }
 }

@@ -7,7 +7,7 @@
     </a>
     <div class="flex flex-col gap-1">
       <h1 class="text-xl font-semibold text-black">New team</h1>
-      <span class="text-xs text-gray-500">Name, optional logo, tap a color circle</span>
+      <span class="text-xs text-gray-500">Name and team color</span>
     </div>
   </div>
 
@@ -32,22 +32,6 @@
           class="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black placeholder:text-gray-400 focus-ring"
           placeholder="e.g. Morning runners"
         />
-      </div>
-      <div class="space-y-2">
-        <span class="text-sm font-medium text-gray-900">Team logo (optional)</span>
-        <p class="text-xs text-gray-500">PNG, JPG, GIF or WebP · max ~2MB</p>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp"
-          (change)="onLogoSelected($event)"
-          class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border file:border-gray-200 file:bg-white file:px-3 file:py-2 file:text-sm file:font-medium file:text-black"
-        />
-        @if (logoPreview()) {
-          <div class="flex items-start gap-3 mt-2">
-            <img [src]="logoPreview()!" alt="Logo preview" class="h-16 w-16 rounded-lg object-cover border border-gray-200" />
-            <button type="button" (click)="clearLogo()" class="text-sm font-medium text-gray-700 underline">Remove image</button>
-          </div>
-        }
       </div>
       <div class="space-y-3">
         <span class="text-sm font-medium text-gray-900">Team color</span>

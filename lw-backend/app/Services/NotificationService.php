@@ -192,10 +192,19 @@ class NotificationService
     /** @return Collection<int, array{id:string,type:string,title:string,body:string,event_datetime:?string,is_unread:bool,action_url:?string}> */
     private function weekOverWeekXpNotifications(User $user): Collection
     {
-        $now = CarbonImmutable::now();
+        $now = CarbonImmutable::now(config('app.timezone'));
         $currentWeekStart = $now->startOfWeek();
         $previousWeekStart = $currentWeekStart->subWeek();
         $previousWeekEnd = $currentWeekStart->subSecond();
+        $releaseMoment = $currentWeekStart->endOfWeek()->setTime(18, 0, 0);
+
+        // Weekly XP comparison should be shown from Sunday 18:00 onward,
+        // not immediately after logging a workout.
+        if ($now->lt($releaseMoment)) {
+            return collect();
+        }
+
+        $weekKey = $currentWeekStart->toDateString();
 
         $currentWeekWorkouts = Workout::query()
             ->where('user_id', $user->id)
@@ -209,7 +218,7 @@ class NotificationService
         $items = collect();
         if ($currentWeekWorkouts !== $previousWeekWorkouts) {
             $items->push([
-                'id' => 'user_xp_delta',
+                'id' => 'user_xp_delta:'.$weekKey,
                 'type' => $currentWeekWorkouts > $previousWeekWorkouts ? 'user_xp_up' : 'user_xp_down',
                 'title' => $currentWeekWorkouts > $previousWeekWorkouts
                     ? 'Je doet meer XP dan vorige week'
@@ -219,7 +228,7 @@ class NotificationService
                     $currentWeekWorkouts,
                     $previousWeekWorkouts
                 ),
-                'event_datetime' => $now->toISOString(),
+                'event_datetime' => $releaseMoment->toISOString(),
                 'is_unread' => true,
                 'action_url' => null,
             ]);
@@ -241,7 +250,7 @@ class NotificationService
 
         if ($currentTeamWeekWorkouts !== $previousTeamWeekWorkouts) {
             $items->push([
-                'id' => 'team_xp_delta',
+                'id' => 'team_xp_delta:'.$team->id.':'.$weekKey,
                 'type' => $currentTeamWeekWorkouts > $previousTeamWeekWorkouts ? 'team_xp_up' : 'team_xp_down',
                 'title' => $currentTeamWeekWorkouts > $previousTeamWeekWorkouts
                     ? 'Team doet meer XP dan vorige week'
@@ -252,7 +261,7 @@ class NotificationService
                     $currentTeamWeekWorkouts,
                     $previousTeamWeekWorkouts
                 ),
-                'event_datetime' => $now->toISOString(),
+                'event_datetime' => $releaseMoment->toISOString(),
                 'is_unread' => true,
                 'action_url' => null,
             ]);

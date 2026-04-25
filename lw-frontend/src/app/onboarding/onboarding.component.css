@@ -1,5 +1,26 @@
+/* iOS Safari auto-zooms inputs with font-size < 16px */
+:host input,
+:host textarea,
+:host select {
+  font-size: 16px;
+}
+
 /* Keep date input within form (native date picker can force min-width) */
 :host input[type="date"] {
   min-width: 0;
   width: 100%;
+  max-width: 100%;
+  display: block;
+  -webkit-appearance: none;
+  appearance: none;
+  font-size: 16px; /* Prevent iOS zoom/layout quirks */
+  line-height: 1.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* iOS Safari can let the rendered value overflow the control box */
+:host input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
 }

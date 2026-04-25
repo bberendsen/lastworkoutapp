@@ -1,14 +1,14 @@
-import { Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { LiveFeedItem, Workout, WorkoutService } from '../services/workoutService';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { WorkoutService } from '../services/workoutService';
+import type { Workout } from '../services/workoutService';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LeaderboardWithStreak, StreakService } from '../services/streakService';
 import { CelebrationOverlayComponent, CelebrationType } from '../components/celebration-overlay/celebration-overlay.component';
-import { TeamService } from '../services/team.service';
-import type { TeamLeaderboardRow, TeamSummary } from '../teams/team.models';
 import { teamPresetLinearGradient } from '../teams/team.models';
-import { AppNotification, NotificationService } from '../services/notification.service';
+import type { TeamLeaderboardRow } from '../teams/team.models';
+import { HomescreenStateService } from '../services/homescreen-state.service';
 
 interface TimeSinceLastWorkoutDisplay {
   days: number;
@@ -50,17 +50,19 @@ interface HomescreenNotification {
   styleUrls: ['./homescreen-component.css']
 })
 export class HomescreenComponent implements OnInit, OnDestroy {
-  workouts: WritableSignal<Workout[]> = signal([]);
-  leaderboard: WritableSignal<LeaderboardWithStreak[]> = signal([]);
-  currentStreak: WritableSignal<number> = signal(0);
-  longestStreak: WritableSignal<number> = signal(0);
-  weeklyProgress: WritableSignal<{ workouts_this_week: number; goal: number } | null> = signal(null);
+  private readonly weeklyXpNotificationTypes = new Set(['user_xp_up', 'user_xp_down', 'team_xp_up', 'team_xp_down']);
+  private state = inject(HomescreenStateService);
+  workouts = this.state.workouts;
+  leaderboard = this.state.leaderboard;
+  currentStreak = this.state.currentStreak;
+  longestStreak = this.state.longestStreak;
+  weeklyProgress = this.state.weeklyProgress;
   userId: string = '';
-  loading: WritableSignal<boolean> = signal(true);
-  error: WritableSignal<string | null> = signal(null);
-  workoutLoggedSuccessfully: WritableSignal<boolean> = signal(false);
-  workoutLoggedFailed: WritableSignal<boolean> = signal(false);
-  workoutLoggedErrorMsg: WritableSignal<string> = signal('');
+  loading = this.state.loading;
+  error = this.state.error;
+  workoutLoggedSuccessfully = signal(false);
+  workoutLoggedFailed = signal(false);
+  workoutLoggedErrorMsg = signal('');
   celebrationType = signal<CelebrationType>('workout-logged');
   celebrationTitle = signal<string | undefined>(undefined);
   celebrationSubtitle = signal<string | undefined>(undefined);
@@ -83,20 +85,18 @@ export class HomescreenComponent implements OnInit, OnDestroy {
   });
   private timerId: ReturnType<typeof setInterval> | null = null;
   private router = inject(Router);
-  private teamService = inject(TeamService);
   readonly Math = Math;
   readonly presetGradient = teamPresetLinearGradient;
-  /** Team you’re a member of (one per account); null if none or load failed. */
-  myTeam: WritableSignal<TeamSummary | null> = signal(null);
-  teamsLeaderboard: WritableSignal<TeamLeaderboardRow[]> = signal([]);
-  teamsLoading = signal(false);
-  teamsError = signal<string | null>(null);
+  myTeam = this.state.myTeam;
+  teamsLeaderboard = this.state.teamsLeaderboard;
+  teamsLoading = this.state.teamsLoading;
+  teamsError = this.state.teamsError;
   activeLeaderboardTab = signal<LeaderboardTab>('users');
   activeTab = signal<HomescreenTab>('home');
-  liveFeedPreview: WritableSignal<LiveFeedItem[]> = signal([]);
-  notificationsApi = signal<AppNotification[]>([]);
-  notificationsLoading = signal(false);
-  notificationUnreadCount = signal(0);
+  liveFeedPreview = this.state.liveFeedPreview;
+  notificationsApi = this.state.notificationsApi;
+  notificationsLoading = this.state.notificationsLoading;
+  notificationUnreadCount = this.state.notificationUnreadCount;
   dismissingNotificationIds = signal<Record<string, boolean>>({});
   markingReadNotificationIds = signal<Record<string, boolean>>({});
   totalWorkouts = computed(() => this.workouts().length);
@@ -111,12 +111,7 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     if (!team) return null;
     return this.teamsLeaderboard().find((row) => row.id === team.id) ?? null;
   });
-  myTeamRank = computed(() => {
-    const team = this.myTeam();
-    if (!team) return null;
-    const idx = this.teamsLeaderboard().findIndex((row) => row.id === team.id);
-    return idx >= 0 ? idx + 1 : null;
-  });
+  myTeamRank = this.state.myTeamRank;
   displayedUserLeaderboard = computed<DisplayUserLeaderboardRow[]>(() => {
     const rows = this.leaderboard();
     const topRows = rows.slice(0, 6).map((row, index) => ({
@@ -164,7 +159,17 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     ];
   });
   notifications = computed<HomescreenNotification[]>(() =>
-    this.notificationsApi().map((item) => {
+    this.notificationsApi()
+      .filter((item) => {
+        if (!this.weeklyXpNotificationTypes.has(item.type)) {
+          return true;
+        }
+        const now = new Date();
+        const day = now.getDay(); // 0 = Sunday
+        const hour = now.getHours();
+        return day === 0 && hour >= 18;
+      })
+      .map((item) => {
       const actionUrl = item.action_url;
       const [pathPart, queryPart] = actionUrl ? actionUrl.split('?') : [null, null];
       const tab = queryPart?.startsWith('tab=') ? queryPart.replace('tab=', '') : null;
@@ -178,14 +183,17 @@ export class HomescreenComponent implements OnInit, OnDestroy {
         actionPath: pathPart,
         actionTab: tab,
       };
-    })
+      })
   );
 
   constructor(
     private workoutService: WorkoutService,
-    private streakService: StreakService,
-    private notificationService: NotificationService
-  ) {}
+    private streakService: StreakService
+  ) {
+    effect(() => {
+      this.setLastWorkoutTime(this.workouts());
+    });
+  }
   
   ngOnInit(): void {
     // Get userId from navigation state (from onboarding) or browser history
@@ -205,21 +213,12 @@ export class HomescreenComponent implements OnInit, OnDestroy {
 
 
     if (this.userId) {
-      this.loadWorkouts();
-      this.loadCurrentStreak();
-      this.loadMyTeam();
-      // Store userId for future use
       localStorage.setItem('userId', this.userId);
+      this.state.ensureInitialized(this.userId);
     } else {
       this.error.set('No user ID found. Please create an account first.');
       this.loading.set(false);
     }
-
-    this.loadLeaderboard();
-    this.loadTeamsLeaderboard();
-    this.loadCurrentStreak();
-    this.loadLiveFeedPreview();
-    this.loadNotificationFeed();
   }
 
   ngOnDestroy(): void {
@@ -236,12 +235,8 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     this.workoutLoggedFailed.set(false);
     this.workoutLoggedErrorMsg.set('');
     this.workoutService.logWorkout(this.userId).subscribe({
-      next: (response) => {
-        this.loadWorkouts();
-        this.loadLeaderboard();
-        this.loadTeamsLeaderboard();
-        this.loadLiveFeedPreview();
-        this.loadNotificationFeed();
+      next: () => {
+        this.state.refreshAfterWorkout();
         this.streakService.getCurrentStreak(this.userId).subscribe({
           next: (res) => {
             this.currentStreak.set(res.current_streak);
@@ -278,118 +273,8 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadWorkouts(): void {
-    if (!this.userId) {
-      this.error.set('No user ID available. Cannot load workouts.');
-      this.loading.set(false);
-      return;
-    }
-
-    this.loading.set(true);
-    this.error.set(null);
-    this.workoutService.getWorkoutByUser(this.userId).subscribe({
-      next: (workouts) => {
-        this.workouts.set(workouts);
-        this.loading.set(false);
-        this.setLastWorkoutTime(workouts);
-      },
-      error: (error) => {
-        console.error('Error loading workouts:', error);
-        this.error.set('Failed to load workouts');
-        this.loading.set(false);
-      }
-    });
-  }
-
-  loadLeaderboard(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.streakService.getLeaderboardWithStreaks().subscribe({
-      next: (leaderboard) => {
-        this.leaderboard.set(leaderboard);
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading leaderboard:', error);
-        this.error.set('Failed to load leaderboard');
-        this.loading.set(false);
-      }
-    });
-  }
-
-  loadTeamsLeaderboard(): void {
-    this.teamsLoading.set(true);
-    this.teamsError.set(null);
-    this.teamService.getTeamsLeaderboard().subscribe({
-      next: (rows) => {
-        this.teamsLeaderboard.set(rows);
-        this.teamsLoading.set(false);
-      },
-      error: () => {
-        this.teamsError.set('Could not load teams.');
-        this.teamsLoading.set(false);
-      },
-    });
-  }
-
   setLeaderboardTab(tab: LeaderboardTab): void {
     this.activeLeaderboardTab.set(tab);
-  }
-
-  private loadMyTeam(): void {
-    this.teamService.listTeams().subscribe({
-      next: (list) => {
-        const team = list.find((t) => t.is_member) ?? null;
-        this.myTeam.set(team);
-        if (team) {
-          this.loadMyTeamDetails(team.id);
-        }
-      },
-      error: () => {
-        this.myTeam.set(null);
-      },
-    });
-  }
-
-  private loadLiveFeedPreview(): void {
-    this.workoutService.getLiveFeed(1, 3).subscribe({
-      next: (res) => this.liveFeedPreview.set(res.items.slice(0, 3)),
-      error: () => this.liveFeedPreview.set([]),
-    });
-  }
-
-  private loadNotificationFeed(): void {
-    this.notificationsLoading.set(true);
-    this.notificationService.getNotifications().subscribe({
-      next: (res) => {
-        this.notificationsApi.set(res.items);
-        this.notificationUnreadCount.set(res.unreadCount);
-        this.notificationsLoading.set(false);
-      },
-      error: () => {
-        this.notificationsApi.set([]);
-        this.notificationUnreadCount.set(0);
-        this.notificationsLoading.set(false);
-      },
-    });
-  }
-
-  private loadMyTeamDetails(teamId: string): void {
-    this.teamService.getTeam(teamId).subscribe({
-      next: (teamDetail) => {
-        this.myTeam.update((team) => {
-          if (!team) return team;
-          return {
-            ...team,
-            pending_join_requests_count: teamDetail.pending_join_requests_count,
-            has_pending_request: teamDetail.has_pending_request,
-          };
-        });
-      },
-      error: () => {
-        // Keep summary data only when detail fetch fails.
-      },
-    });
   }
 
   setActiveTab(tab: HomescreenTab): void {
@@ -398,13 +283,8 @@ export class HomescreenComponent implements OnInit, OnDestroy {
 
   dismissNotification(notificationId: string): void {
     this.dismissingNotificationIds.update((curr) => ({ ...curr, [notificationId]: true }));
-    this.notificationService.dismissNotification(notificationId).subscribe({
+    this.state.dismissNotification(notificationId).subscribe({
       next: () => {
-        const dismissedUnread = this.notificationsApi().find((item) => item.id === notificationId)?.is_unread;
-        this.notificationsApi.update((items) => items.filter((item) => item.id !== notificationId));
-        if (dismissedUnread) {
-          this.notificationUnreadCount.update((count) => Math.max(0, count - 1));
-        }
         this.dismissingNotificationIds.update((curr) => {
           const next = { ...curr };
           delete next[notificationId];
@@ -425,12 +305,8 @@ export class HomescreenComponent implements OnInit, OnDestroy {
     const notification = this.notificationsApi().find((item) => item.id === notificationId);
     if (!notification || !notification.is_unread) return;
     this.markingReadNotificationIds.update((curr) => ({ ...curr, [notificationId]: true }));
-    this.notificationService.markNotificationRead(notificationId).subscribe({
+    this.state.markNotificationRead(notificationId).subscribe({
       next: () => {
-        this.notificationsApi.update((items) =>
-          items.map((item) => (item.id === notificationId ? { ...item, is_unread: false } : item))
-        );
-        this.notificationUnreadCount.update((count) => Math.max(0, count - 1));
         this.markingReadNotificationIds.update((curr) => {
           const next = { ...curr };
           delete next[notificationId];
@@ -449,25 +325,6 @@ export class HomescreenComponent implements OnInit, OnDestroy {
 
   isNotificationUnread(notificationId: string): boolean {
     return this.notificationsApi().some((item) => item.id === notificationId && item.is_unread);
-  }
-
-  loadCurrentStreak(): void {
-    if (!this.userId) return;
-    this.streakService.getCurrentStreak(this.userId).subscribe({
-      next: (res) => {
-        this.currentStreak.set(res.current_streak);
-        this.longestStreak.set(res.longest_streak ?? 0);
-        this.weeklyProgress.set(res.weekly_progress ? {
-          workouts_this_week: res.weekly_progress.workouts_this_week,
-          goal: res.weekly_progress.goal
-        } : null);
-      },
-      error: () => {
-        this.currentStreak.set(0);
-        this.longestStreak.set(0);
-        this.weeklyProgress.set(null);
-      }
-    });
   }
 
   navigateToLeaderboard(): void {

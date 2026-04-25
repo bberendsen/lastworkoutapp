@@ -59,6 +59,14 @@ export class OnboardingComponent {
     password: new FormControl('', Validators.required),
   });
 
+  private resetInputFocusBeforeRedirect(): void {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) {
+      active.blur();
+    }
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       return;
@@ -91,7 +99,8 @@ export class OnboardingComponent {
         if (loginResponse.user?.id) {
           localStorage.setItem('userId', loginResponse.user.id);
         }
-        
+
+        this.resetInputFocusBeforeRedirect();
         setTimeout(() => {
           this.router.navigate(['/onboarding/team'], {
             state: { userId: response.id },

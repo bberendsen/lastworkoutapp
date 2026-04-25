@@ -31,25 +31,6 @@
             class="flex h-10 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black focus-ring"
           />
         </div>
-        <div class="space-y-2">
-          <span class="text-sm font-medium text-gray-900">Team logo</span>
-          <p class="text-xs text-gray-500">Upload a new image to replace the current logo (optional)</p>
-          @if (existingLogoUrl() && !newLogoPreview()) {
-            <img [src]="existingLogoUrl()!" alt="Current logo" class="h-16 w-16 rounded-lg object-cover border border-gray-200" />
-          }
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            (change)="onLogoSelected($event)"
-            class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border file:border-gray-200 file:bg-white file:px-3 file:py-2 file:text-sm file:font-medium file:text-black"
-          />
-          @if (newLogoPreview()) {
-            <div class="flex items-start gap-3 mt-2">
-              <img [src]="newLogoPreview()!" alt="New logo preview" class="h-16 w-16 rounded-lg object-cover border border-gray-200" />
-              <button type="button" (click)="clearNewLogo()" class="text-sm font-medium text-gray-700 underline">Keep current logo</button>
-            </div>
-          }
-        </div>
         <div class="space-y-3">
           <span class="text-sm font-medium text-gray-900">Team color</span>
           <p class="text-xs text-gray-500">4px circles — hover for name.</p>

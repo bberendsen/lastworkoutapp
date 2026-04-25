@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,13 +11,12 @@ import { TEAM_GRADIENT_PRESETS, teamPresetLinearGradient, type TeamGradientPrese
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
   templateUrl: './team-edit.component.html',
 })
-export class TeamEditComponent implements OnInit, OnDestroy {
+export class TeamEditComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private teamService = inject(TeamService);
 
   teamId = '';
-  existingLogoUrl = signal<string | null>(null);
   presets = TEAM_GRADIENT_PRESETS;
   readonly presetGradient = teamPresetLinearGradient;
   loading = signal(true);
@@ -25,8 +24,6 @@ export class TeamEditComponent implements OnInit, OnDestroy {
   saveError = signal<string | null>(null);
   submitting = signal(false);
   forbidden = signal(false);
-  logoFile = signal<File | null>(null);
-  newLogoPreview = signal<string | null>(null);
 
   form = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(120)]),
@@ -47,7 +44,6 @@ export class TeamEditComponent implements OnInit, OnDestroy {
           this.loading.set(false);
           return;
         }
-        this.existingLogoUrl.set(t.logo_url ?? null);
         this.form.patchValue({
           name: t.name,
           gradient_preset: t.gradient_preset as TeamGradientPreset,
@@ -65,33 +61,6 @@ export class TeamEditComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.revokeNewPreview();
-  }
-
-  onLogoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    this.revokeNewPreview();
-    this.logoFile.set(file);
-    if (file) {
-      this.newLogoPreview.set(URL.createObjectURL(file));
-    }
-  }
-
-  clearNewLogo(): void {
-    this.revokeNewPreview();
-    this.logoFile.set(null);
-  }
-
-  private revokeNewPreview(): void {
-    const url = this.newLogoPreview();
-    if (url) {
-      URL.revokeObjectURL(url);
-    }
-    this.newLogoPreview.set(null);
-  }
-
   selectPreset(id: TeamGradientPreset): void {
     this.form.patchValue({ gradient_preset: id });
   }
@@ -105,7 +74,6 @@ export class TeamEditComponent implements OnInit, OnDestroy {
       .updateTeam(this.teamId, {
         name: (v.name ?? '').trim(),
         gradient_preset: v.gradient_preset,
-        logo: this.logoFile(),
       })
       .subscribe({
         next: () => {
