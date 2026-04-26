@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 export interface AppNotification {
   id: string;
@@ -22,7 +23,7 @@ interface NotificationsResponse {
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api/notifications';
+  private apiUrl = APP_ENDPOINTS.notifications.base;
 
   constructor(private http: HttpClient) {}
 
@@ -39,13 +40,13 @@ export class NotificationService {
 
   dismissNotification(notificationKey: string): Observable<void> {
     return this.http
-      .delete<{ message: string }>(`${this.apiUrl}/${encodeURIComponent(notificationKey)}`)
+      .delete<{ message: string }>(APP_ENDPOINTS.notifications.dismiss(notificationKey))
       .pipe(map(() => undefined));
   }
 
   markNotificationRead(notificationKey: string): Observable<void> {
     return this.http
-      .post<{ message: string }>(`${this.apiUrl}/${encodeURIComponent(notificationKey)}/read`, {})
+      .post<{ message: string }>(APP_ENDPOINTS.notifications.markRead(notificationKey), {})
       .pipe(map(() => undefined));
   }
 }

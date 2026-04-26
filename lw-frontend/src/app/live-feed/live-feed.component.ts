@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LiveFeedItem, WorkoutService } from '../services/workoutService';
+import { LiveFeedRealtimeService } from '../services/live-feed-realtime.service';
 
 @Component({
   selector: 'app-live-feed',
@@ -22,11 +23,16 @@ export class LiveFeedComponent implements OnInit, OnDestroy {
   pendingItems = signal<LiveFeedItem[]>([]);
 
   private pollHandle: ReturnType<typeof setInterval> | null = null;
+  private unsubscribeRealtime: (() => void) | null = null;
 
-  constructor(private workoutService: WorkoutService) {}
+  constructor(
+    private workoutService: WorkoutService,
+    private liveFeedRealtimeService: LiveFeedRealtimeService
+  ) {}
 
   ngOnInit(): void {
     this.loadInitial();
+    this.startRealtime();
     this.startPolling();
   }
 
@@ -34,6 +40,10 @@ export class LiveFeedComponent implements OnInit, OnDestroy {
     if (this.pollHandle) {
       clearInterval(this.pollHandle);
       this.pollHandle = null;
+    }
+    if (this.unsubscribeRealtime) {
+      this.unsubscribeRealtime();
+      this.unsubscribeRealtime = null;
     }
   }
 
@@ -70,7 +80,18 @@ export class LiveFeedComponent implements OnInit, OnDestroy {
           this.hasMore.set(res.meta.has_more);
         },
       });
-    }, 8000);
+    }, 30000);
+  }
+
+  private startRealtime(): void {
+    this.unsubscribeRealtime = this.liveFeedRealtimeService.subscribe((item) => {
+      const currentIds = new Set(this.items().map((i) => i.id));
+      const queuedIds = new Set(this.pendingItems().map((i) => i.id));
+      if (currentIds.has(item.id) || queuedIds.has(item.id)) {
+        return;
+      }
+      this.pendingItems.set([item, ...this.pendingItems()]);
+    });
   }
 
   loadMore(): void {

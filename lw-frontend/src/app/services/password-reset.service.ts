@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 /** Same shape as login API response (used after password reset). */
 export interface PasswordResetLoginResponse {
@@ -20,7 +21,7 @@ export interface PasswordResetLoginResponse {
 })
 export class PasswordResetService {
   private http = inject(HttpClient);
-  private readonly base = 'https://lastworkoutapp.onrender.com/api/password';
+  private readonly base = APP_ENDPOINTS.password.base;
 
   sendCode(email: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.base}/send-code`, { email });

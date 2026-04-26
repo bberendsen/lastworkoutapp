@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\TeamChallengeType;
+use App\Events\LiveFeedItemCreated;
+use App\Http\Responses\WorkoutFeedResponse;
 use App\Models\Team;
 use App\Models\TeamChallengeCompletion;
 use App\Models\Workout;
@@ -317,12 +319,16 @@ class TeamChallengeService
 
     private function recordCompletion(string $teamId, TeamChallengeType $type): void
     {
-        TeamChallengeCompletion::query()->firstOrCreate(
+        $completion = TeamChallengeCompletion::query()->firstOrCreate(
             [
                 'team_id' => $teamId,
                 'challenge_type' => $type->value,
             ],
             ['completed_at' => now()]
         );
+
+        if ($completion->wasRecentlyCreated) {
+            broadcast(new LiveFeedItemCreated(WorkoutFeedResponse::fromChallengeCompletionModel($completion)));
+        }
     }
 }

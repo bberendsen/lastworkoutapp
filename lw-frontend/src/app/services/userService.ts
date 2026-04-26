@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 export interface User {
   id: string;
@@ -45,7 +46,7 @@ export interface UserProfilePayload {
 })
 export class UserService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api';
+  private apiUrl = APP_ENDPOINTS.apiBase;
 
   getUser(id: string): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/users/${id}`);

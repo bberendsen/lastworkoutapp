@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LiveFeedItemCreated;
 use App\Http\Responses\WorkoutFeedResponse;
 use App\Models\User;
 use App\Models\Workout;
@@ -60,6 +61,7 @@ class WorkoutController extends Controller
 
         $this->streakService->updateLongestStreakIfNeeded($validated['user_id']);
         $this->teamChallengeService->syncCompletionsForTeam($teamId);
+        broadcast(new LiveFeedItemCreated(WorkoutFeedResponse::fromWorkoutModel($workout)));
 
         return response()->json($workout, 201);
     }

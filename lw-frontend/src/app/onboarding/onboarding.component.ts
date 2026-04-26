@@ -5,6 +5,7 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../services/authService';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 export interface User {
     id: string;
@@ -41,8 +42,8 @@ export class OnboardingComponent {
   private router = inject(Router);
   private http: HttpClient = inject(HttpClient);
   private auth = inject(AuthService);
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api/users';
-  private loginUrl = 'https://lastworkoutapp.onrender.com/api/login';
+  private apiUrl = APP_ENDPOINTS.users.collection;
+  private loginUrl = APP_ENDPOINTS.auth.login;
 
   public formSubmitting: WritableSignal<boolean> = signal(false);
   public formSubmitted: WritableSignal<boolean> = signal(false);

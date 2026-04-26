@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 export interface Leaderboard {
   id: string;
@@ -13,7 +14,7 @@ export interface Leaderboard {
 })
 
 export class LeaderboardService {
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api/workouts/leaderboard';
+  private apiUrl = APP_ENDPOINTS.workouts.leaderboard;
 
   constructor(private http: HttpClient) { }
 

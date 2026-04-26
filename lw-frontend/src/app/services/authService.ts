@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 const TOKEN_KEY = 'lw_access_token';
 
@@ -10,7 +11,7 @@ const TOKEN_KEY = 'lw_access_token';
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api';
+  private apiUrl = APP_ENDPOINTS.apiBase;
 
   getToken(): string | null {
     return localStorage.getItem(TOKEN_KEY);

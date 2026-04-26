@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable, of, catchError, throwError, tap } from 'rxjs';
+import { APP_ENDPOINTS } from '../config/app-endpoints';
 
 export interface Workout {
   id: string;
@@ -48,7 +49,8 @@ export interface LiveFeedResponse {
   providedIn: 'root'
 })
 export class WorkoutService {
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api/workouts/';
+  readonly apiOrigin = APP_ENDPOINTS.apiOrigin;
+  private apiUrl = APP_ENDPOINTS.workouts.base;
 
   constructor(private http: HttpClient) { }
 

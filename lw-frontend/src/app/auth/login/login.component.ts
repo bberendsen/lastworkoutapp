@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/authService';
+import { APP_ENDPOINTS } from '../../config/app-endpoints';
 
 export interface LoginResponse {
   access_token: string;
@@ -29,7 +30,7 @@ export class LoginComponent {
   private router = inject(Router);
   private auth = inject(AuthService);
 
-  private apiUrl = 'https://lastworkoutapp.onrender.com/api/login';
+  private apiUrl = APP_ENDPOINTS.auth.login;
 
   formSubmitting = false;
   formSubmitted = false;
