@@ -42,12 +42,12 @@ export class OnboardingComponent {
       return;
     }
 
-    const first_name = this.form.controls.first_name.value ?? '';
-    const last_name = this.form.controls.last_name.value ?? '';
-    const birthdate = this.form.controls.birthdate.value ?? '';
-    const username = this.form.controls.username.value ?? '';
-    const email = this.form.controls.email.value ?? '';
-    const password = this.form.controls.password.value ?? '';
+    const first_name = this.form.controls['first_name'].value ?? '';
+    const last_name = this.form.controls['last_name'].value ?? '';
+    const birthdate = this.form.controls['birthdate'].value ?? '';
+    const username = this.form.controls['username'].value ?? '';
+    const email = this.form.controls['email'].value ?? '';
+    const password = this.form.controls['password'].value ?? '';
 
     const userId = await this.onboardingState.createAccountAndLogin({
       first_name,
