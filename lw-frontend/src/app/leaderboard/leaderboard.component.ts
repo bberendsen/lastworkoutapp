@@ -40,6 +40,10 @@ export class LeaderboardComponent implements OnInit {
     this.activeTab.set(tab);
   }
 
+  public loadTeamsLeaderboard(): void {
+    this.leaderboardState.loadAll();
+  }
+
   public backToHomescreen(): void {
     void this.router.navigate(['/homescreen']);
   }
