@@ -1,10 +1,7 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs/operators';
-import { TeamService } from '../services/team.service';
-import type { TeamSummary } from './team.models';
+import { TeamStateService } from '../services/team-state.service';
 import { teamPresetLinearGradient } from './team.models';
 
 @Component({
@@ -14,15 +11,13 @@ import { teamPresetLinearGradient } from './team.models';
   templateUrl: './teams-list.component.html',
 })
 export class TeamsListComponent implements OnInit {
-  private teamService = inject(TeamService);
-  private router = inject(Router);
+  private readonly teamState = inject(TeamStateService);
+  private readonly router = inject(Router);
 
-  teams = signal<TeamSummary[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-
-  /** One team per user — hide create until they leave. */
-  hasTeamMembership = computed(() => this.teams().some((t) => t.is_member));
+  public readonly teams = this.teamState.teams;
+  public readonly loading = this.teamState.loadingTeams;
+  public readonly error = this.teamState.teamsError;
+  public readonly hasTeamMembership = this.teamState.hasTeamMembership;
 
   readonly presetGradient = teamPresetLinearGradient;
 
@@ -30,30 +25,11 @@ export class TeamsListComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.teamService
-      .listTeams()
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (list) => {
-          this.teams.set(list);
-        },
-        error: (err: HttpErrorResponse) => {
-          const body = err.error as { message?: string } | string | null;
-          const msg =
-            typeof body === 'object' && body && 'message' in body && typeof body.message === 'string'
-              ? body.message
-              : typeof body === 'string'
-                ? body
-                : null;
-          this.error.set(msg ?? `Could not load teams (${err.status}).`);
-        },
-      });
+  public load(): void {
+    this.teamState.loadTeams();
   }
 
-  goDetail(id: string): void {
+  public goDetail(id: string): void {
     void this.router.navigate(['/teams', id]);
   }
 }

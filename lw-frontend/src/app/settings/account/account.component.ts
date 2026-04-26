@@ -1,9 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { UserService } from '../../services/userService';
-import { AuthService } from '../../services/authService';
+import { AccountStateService } from '../../services/account-state.service';
 
 @Component({
   selector: 'app-account',
@@ -13,94 +12,42 @@ import { AuthService } from '../../services/authService';
   styleUrl: './account.component.css'
 })
 export class AccountComponent implements OnInit {
-  private userService = inject(UserService);
-  private auth = inject(AuthService);
-  private router = inject(Router);
+  private readonly accountState = inject(AccountStateService);
 
-  loading = signal(true);
-  saving = signal(false);
-  success = signal(false);
-  error = signal<string | null>(null);
-  showDeleteModal = signal(false);
-  deleting = signal(false);
-  deleteError = signal<string | null>(null);
-  userId = '';
-
-  form = new FormGroup({
+  public readonly form = new FormGroup({
     first_name: new FormControl('', Validators.required),
     last_name: new FormControl('', Validators.required),
     username: new FormControl('', Validators.required),
   });
+  public readonly loading = this.accountState.loading;
+  public readonly saving = this.accountState.saving;
+  public readonly success = this.accountState.success;
+  public readonly error = this.accountState.error;
+  public readonly showDeleteModal = this.accountState.showDeleteModal;
+  public readonly deleting = this.accountState.deleting;
+  public readonly deleteError = this.accountState.deleteError;
 
   ngOnInit(): void {
-    const stored = localStorage.getItem('userId');
-    if (!stored) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.userId = stored;
-    this.userService.getUser(this.userId).subscribe({
-      next: (user) => {
-        this.form.patchValue({
-          first_name: user.first_name ?? '',
-          last_name: user.last_name ?? '',
-          username: user.username ?? '',
-        });
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.error.set('Could not load account.');
-      }
-    });
+    this.accountState.initialize((payload) => this.form.patchValue(payload));
   }
 
-  onSubmit(): void {
+  public onSubmit(): void {
     if (this.form.invalid) return;
-    this.saving.set(true);
-    this.error.set(null);
-    this.userService.updateUser(this.userId, this.form.value as { first_name: string; last_name: string; username: string }).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.success.set(true);
-        setTimeout(() => this.success.set(false), 3000);
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.error.set(err?.error?.message ?? 'Could not update account.');
-      }
-    });
+    const first_name = this.form.controls.first_name.value ?? '';
+    const last_name = this.form.controls.last_name.value ?? '';
+    const username = this.form.controls.username.value ?? '';
+    this.accountState.save({ first_name, last_name, username });
   }
 
-  openDeleteModal(): void {
-    this.deleteError.set(null);
-    this.showDeleteModal.set(true);
+  public openDeleteModal(): void {
+    this.accountState.openDeleteModal();
   }
 
-  closeDeleteModal(): void {
-    if (this.deleting()) {
-      return;
-    }
-    this.showDeleteModal.set(false);
-    this.deleteError.set(null);
+  public closeDeleteModal(): void {
+    this.accountState.closeDeleteModal();
   }
 
-  confirmDeleteAccount(): void {
-    if (!this.userId || this.deleting()) {
-      return;
-    }
-    this.deleting.set(true);
-    this.deleteError.set(null);
-    this.userService.deleteUser(this.userId).subscribe({
-      next: () => {
-        this.auth.clearToken();
-        localStorage.removeItem('userId');
-        void this.router.navigate(['/login']);
-      },
-      error: (err: { error?: { message?: string } }) => {
-        this.deleting.set(false);
-        this.deleteError.set(err?.error?.message ?? 'Could not delete account.');
-      },
-    });
+  public confirmDeleteAccount(): void {
+    this.accountState.confirmDeleteAccount();
   }
 }

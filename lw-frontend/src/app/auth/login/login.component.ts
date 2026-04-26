@@ -2,21 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
-import { AuthService } from '../../services/authService';
-import { APP_ENDPOINTS } from '../../config/app-endpoints';
-
-export interface LoginResponse {
-  access_token: string;
-  token_type: string;
-  user: {
-    id: string;
-    username: string;
-    first_name?: string;
-    last_name?: string;
-    email?: string;
-  };
-}
+import { LoginStateService } from '../../services/login-state.service';
 
 @Component({
   selector: 'app-login',
@@ -26,56 +12,32 @@ export interface LoginResponse {
   styleUrl: './login.component.css'
 })
 export class LoginComponent {
-  private http = inject(HttpClient);
-  private router = inject(Router);
-  private auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly loginState = inject(LoginStateService);
 
-  private apiUrl = APP_ENDPOINTS.auth.login;
-
-  formSubmitting = false;
-  formSubmitted = false;
-  formError = false;
-  errorMessage = '';
-
-  form = new FormGroup({
+  public readonly form = new FormGroup({
     username: new FormControl('', Validators.required),
     password: new FormControl('', Validators.required),
   });
+  public readonly formSubmitting = this.loginState.submitting;
+  public readonly formSubmitted = this.loginState.submitted;
+  public readonly errorMessage = this.loginState.error;
 
-  async onSubmit(): Promise<void> {
+  public async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       return;
     }
 
-    this.formSubmitting = true;
-    this.formSubmitted = false;
-    this.formError = false;
-    this.errorMessage = '';
+    const username = this.form.controls.username.value ?? '';
+    const password = this.form.controls.password.value ?? '';
+    const userId = await this.loginState.login(username, password);
 
-    try {
-      const response = await this.http
-        .post<LoginResponse>(this.apiUrl, this.form.value)
-        .toPromise();
-
-      if (response?.access_token) {
-        this.auth.setToken(response.access_token);
-        if (response.user?.id) {
-          localStorage.setItem('userId', response.user.id);
-        }
-        this.formSubmitted = true;
-        setTimeout(() => {
-          this.router.navigate(['/homescreen'], {
-            state: { userId: response.user?.id },
-          });
-        }, 500);
-      } else {
-        throw new Error('No token in response');
-      }
-    } catch (err: unknown) {
-      this.formError = true;
-      this.errorMessage = (err as { error?: { message?: string } })?.error?.message ?? 'Invalid credentials';
-    } finally {
-      this.formSubmitting = false;
+    if (userId !== null) {
+      setTimeout(() => {
+        this.router.navigate(['/homescreen'], {
+          state: { userId },
+        });
+      }, 500);
     }
   }
 }

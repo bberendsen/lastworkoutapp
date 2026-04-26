@@ -1,8 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
-import { APP_ENDPOINTS } from '../config/app-endpoints';
+import { catchError, tap } from 'rxjs/operators';
+import { AuthApiService } from './auth-api.service';
 
 const TOKEN_KEY = 'lw_access_token';
 
@@ -10,31 +9,34 @@ const TOKEN_KEY = 'lw_access_token';
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
-  private apiUrl = APP_ENDPOINTS.apiBase;
+  private readonly authApi = inject(AuthApiService);
+  private readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  public readonly isLoggedInSignal = computed(() => this.token() !== null);
 
-  getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+  public getToken(): string | null {
+    return this.token();
   }
 
-  setToken(token: string): void {
+  public setToken(token: string): void {
+    this.token.set(token);
     localStorage.setItem(TOKEN_KEY, token);
   }
 
-  clearToken(): void {
+  public clearToken(): void {
+    this.token.set(null);
     localStorage.removeItem(TOKEN_KEY);
   }
 
-  isLoggedIn(): boolean {
-    return !!this.getToken();
+  public isLoggedIn(): boolean {
+    return this.isLoggedInSignal();
   }
 
   /** Calls backend to revoke the token, then clears local state. */
-  logout(): Observable<unknown> {
+  public logout(): Observable<unknown> {
     if (!this.getToken()) {
       return of(null);
     }
-    return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
+    return this.authApi.logout().pipe(
       tap(() => this.clearToken()),
       catchError(() => {
         this.clearToken();

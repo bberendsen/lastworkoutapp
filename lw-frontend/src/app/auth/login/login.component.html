@@ -41,19 +41,19 @@
         <a routerLink="/reset-password" class="font-medium text-black hover:underline">Reset password</a>
       </p>
 
-      @if (formError) {
-        <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ errorMessage }}</p>
+      @if (errorMessage()) {
+        <p class="text-sm text-gray-600 rounded-md bg-gray-50 border border-gray-200 px-3 py-2">{{ errorMessage() }}</p>
       }
-      @if (formSubmitted) {
+      @if (formSubmitted()) {
         <p class="text-sm font-medium text-gray-700">Logged in succesfully. Redirecting…</p>
       }
 
       <button
         type="submit"
-        [disabled]="formSubmitting"
+        [disabled]="formSubmitting()"
         class="btn-primary w-full h-10 text-sm"
       >
-        {{ formSubmitting ? 'Logging in…' : 'Log in' }}
+        {{ formSubmitting() ? 'Logging in…' : 'Log in' }}
       </button>
     </form>
   </div>

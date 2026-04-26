@@ -1,11 +1,8 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs/operators';
-import { TeamService } from '../../services/team.service';
-import type { TeamSummary } from '../../teams/team.models';
 import { teamPresetLinearGradient } from '../../teams/team.models';
+import { OnboardingTeamStateService } from '../../services/onboarding-team-state.service';
 
 @Component({
   selector: 'app-onboarding-team',
@@ -14,87 +11,36 @@ import { teamPresetLinearGradient } from '../../teams/team.models';
   templateUrl: './onboarding-team.component.html',
 })
 export class OnboardingTeamComponent implements OnInit {
-  private router = inject(Router);
-  private teamService = inject(TeamService);
+  private readonly router = inject(Router);
+  private readonly state = inject(OnboardingTeamStateService);
 
-  teams = signal<TeamSummary[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-  selectedId = signal<string | null>(null);
-  busy = signal(false);
-  actionError = signal<string | null>(null);
-
-  /** When set, user cannot request to join other teams (one team per account). */
-  memberTeam = computed(() => this.teams().find((t) => t.is_member));
+  public readonly teams = this.state.teams;
+  public readonly loading = this.state.loading;
+  public readonly error = this.state.error;
+  public readonly selectedId = this.state.selectedId;
+  public readonly busy = this.state.busy;
+  public readonly actionError = this.state.actionError;
+  public readonly memberTeam = this.state.memberTeam;
 
   readonly presetGradient = teamPresetLinearGradient;
 
   ngOnInit(): void {
-    if (!localStorage.getItem('userId')) {
-      void this.router.navigate(['/login']);
-      return;
-    }
-    this.teamService
-      .listTeams()
-      .pipe(finalize(() => this.loading.set(false)))
-      .subscribe({
-        next: (list) => {
-          this.teams.set(list);
-          const member = list.find((t) => t.is_member);
-          const pending = list.find((t) => t.has_pending_request);
-          if (member) {
-            this.selectedId.set(member.id);
-          } else if (pending) {
-            this.selectedId.set(pending.id);
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          const body = err.error as { message?: string } | string | null;
-          const msg =
-            typeof body === 'object' && body && 'message' in body && typeof body.message === 'string'
-              ? body.message
-              : typeof body === 'string'
-                ? body
-                : null;
-          this.error.set(msg ?? `Could not load teams (${err.status}).`);
-        },
-      });
+    this.state.initialize();
   }
 
-  selectTeam(id: string): void {
-    this.selectedId.set(id);
-    this.actionError.set(null);
+  public selectTeam(id: string): void {
+    this.state.selectTeam(id);
   }
 
-  continueWithSelection(): void {
-    const id = this.selectedId();
-    if (!id) {
-      void this.router.navigate(['/homescreen']);
-      return;
-    }
-    const team = this.teams().find((t) => t.id === id);
-    if (team?.is_member || team?.has_pending_request) {
-      void this.router.navigate(['/homescreen']);
-      return;
-    }
-    this.busy.set(true);
-    this.actionError.set(null);
-    this.teamService.requestToJoin(id).subscribe({
-      next: () => {
-        void this.router.navigate(['/homescreen']);
-      },
-      error: (err: { error?: { message?: string } }) => {
-        this.actionError.set(err?.error?.message ?? 'Could not join team.');
-        this.busy.set(false);
-      },
-    });
+  public continueWithSelection(): void {
+    this.state.continueWithSelection(() => void this.router.navigate(['/homescreen']));
   }
 
-  skip(): void {
+  public skip(): void {
     void this.router.navigate(['/homescreen']);
   }
 
-  goToCreateTeam(): void {
+  public goToCreateTeam(): void {
     if (this.memberTeam()) return;
     void this.router.navigate(['/teams/create']);
   }

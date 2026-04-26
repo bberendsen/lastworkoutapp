@@ -13,3 +13,4 @@ When adding or changing Laravel HTTP endpoints:
 4. **Naming** — Match action names: password reset uses `SendPasswordResetCodeRequest`, `VerifyPasswordResetCodeRequest`, `CompletePasswordResetRequest` and paired `*Response` / `*ErrorResponse` types.
 
 Reference implementation: `app/Http/Controllers/PasswordController.php` and its `Requests` / `Responses` neighbors.
+

@@ -16,9 +16,12 @@ WORKDIR /var/www/html
 # Copy the application before running Composer scripts (artisan is required).
 COPY . .
 
+# Make container start script executable.
+RUN chmod +x docker/start.sh
+
 # Install PHP dependencies.
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 EXPOSE 10000
 
-CMD sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
+CMD ["sh", "docker/start.sh"]
